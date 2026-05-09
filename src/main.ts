@@ -35,7 +35,7 @@ export const setupApp = async (app: INestApplication) => {
     .addBearerAuth()
     .build();
   const document = SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup('api/docs', app, document);
+  SwaggerModule.setup('docs', app, document);
 };
 
 async function bootstrap() {
