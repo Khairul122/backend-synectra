@@ -8,11 +8,11 @@ import { GoogleProfile } from '../../../types/auth.types';
 export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
   constructor(private configService: ConfigService) {
     super({
-      clientID: configService.get<string>('google.clientId'),
-      clientSecret: configService.get<string>('google.clientSecret'),
-      callbackURL: configService.get<string>('google.callbackUrl'),
+      clientID: configService.get<string>('google.clientId')!,
+      clientSecret: configService.get<string>('google.clientSecret')!,
+      callbackURL: configService.get<string>('google.callbackUrl')!,
       scope: ['email', 'profile'],
-    });
+    } as any);
   }
 
   async validate(

@@ -9,8 +9,8 @@ export class UserModel {
   private supabase: SupabaseClient;
 
   constructor(private configService: ConfigService) {
-    const url = this.configService.get<string>('supabase.url');
-    const key = this.configService.get<string>('supabase.serviceRoleKey');
+    const url = this.configService.get<string>('supabase.url')!;
+    const key = this.configService.get<string>('supabase.serviceRoleKey')!;
     this.supabase = createClient(url, key);
   }
 

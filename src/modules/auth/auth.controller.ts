@@ -3,7 +3,7 @@ import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { AuthService } from './auth.service';
 import { GoogleAuthGuard } from '../../common/guards/google-auth.guard';
 import { AuthResponseDto } from './dto/auth-response.dto';
-import { Request, Response } from 'express';
+import type { Request, Response } from 'express';
 
 @ApiTags('auth')
 @Controller('auth')

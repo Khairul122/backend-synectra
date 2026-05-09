@@ -5,7 +5,7 @@ import { AppModule } from './app.module';
 import { HttpExceptionFilter } from './common/filters/http-exception.filter';
 import { ResponseInterceptor } from './common/interceptors/response.interceptor';
 import { ExpressAdapter } from '@nestjs/platform-express';
-import * as express from 'express';
+import express from 'express';
 
 // Create a singleton instance of the express server
 const server = express();
