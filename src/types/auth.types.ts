@@ -23,3 +23,7 @@ export interface GoogleOAuthUser {
   avatarUrl: string;
   accessToken: string;
 }
+
+export interface UserRecord extends AuthUser {
+  passwordHash: string | null;
+}

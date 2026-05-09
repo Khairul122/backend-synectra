@@ -8,7 +8,9 @@
       "mcp__vercel__list_deployments",
       "mcp__vercel__get_deployment_build_logs",
       "Bash(vercel env *)",
-      "Bash(vercel link *)"
+      "Bash(vercel link *)",
+      "mcp__supabase__list_tables",
+      "mcp__supabase__apply_migration"
     ]
   },
   "enableAllProjectMcpServers": true,

@@ -20,6 +20,34 @@
 
 ---
 
+## 🚀 Fitur yang Sudah Dibuat (Implemented Features)
+
+Berikut adalah daftar fitur dan arsitektur yang telah berhasil diimplementasikan:
+
+1. **Autentikasi (Auth Module)**
+   - Inisiasi login menggunakan Google OAuth 2.0 (`GET /auth/google`)
+   - Handling Google OAuth Callback & pembuatan token JWT (`GET /auth/google/callback`)
+   - Otorisasi via JWT berbasis `httpOnly` cookie untuk keamanan maksimal
+   - Pengambilan profil user yang sedang login (`GET /auth/me`)
+   - Proses logout dengan penghapusan cookie akses (`POST /auth/logout`)
+
+2. **Keamanan & Custom Guards**
+   - Integrasi `Passport.js` dengan strategi Google dan JWT
+   - `JwtAuthGuard` untuk memproteksi protected routes
+   - `GoogleAuthGuard` untuk memicu flow OAuth Google
+
+3. **Database & Data Modeling**
+   - Setup koneksi ke Supabase (PostgreSQL)
+   - Pembuatan `user.model.ts` untuk mengelola interaksi tabel user pada database
+
+4. **Infrastruktur & Standar API**
+   - Dokumentasi API interaktif dengan **Swagger (OpenAPI 3.0)** (`/api/docs`)
+   - Standarisasi *success response* dengan `ResponseInterceptor`
+   - Standarisasi *error response* dengan `HttpExceptionFilter`
+   - Validasi payload global menggunakan `ValidationPipe` (`class-validator` & `class-transformer`)
+
+---
+
 ## 🛠️ Tech Stack
 
 - **NestJS** — Framework utama backend berbasis Node.js; menggunakan module system, decorator, dan dependency injection bawaan

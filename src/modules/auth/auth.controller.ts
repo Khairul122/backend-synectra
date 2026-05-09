@@ -2,6 +2,7 @@ import {
   Controller,
   Get,
   Post,
+  Body,
   UseGuards,
   Req,
   Res,
@@ -13,6 +14,7 @@ import {
   ApiOperation,
   ApiResponse,
   ApiCookieAuth,
+  ApiBody,
 } from '@nestjs/swagger';
 import type { Request, Response } from 'express';
 
@@ -20,6 +22,8 @@ import { AuthService } from './auth.service';
 import { GoogleAuthGuard } from '../../common/guards/google-auth.guard';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
+import { RegisterDto } from './dto/register.dto';
+import { LoginDto } from './dto/login.dto';
 import { AuthResponseDto, UserDto } from './dto/auth-response.dto';
 import type { AuthUser, GoogleOAuthUser } from '../../types/auth.types';
 
@@ -28,9 +32,40 @@ import type { AuthUser, GoogleOAuthUser } from '../../types/auth.types';
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
+  @Post('register')
+  @HttpCode(HttpStatus.CREATED)
+  @ApiOperation({ summary: 'Registrasi akun baru dengan email dan password' })
+  @ApiBody({ type: RegisterDto })
+  @ApiResponse({ status: 201, description: 'Registrasi berhasil', type: AuthResponseDto })
+  @ApiResponse({ status: 409, description: 'Email sudah terdaftar' })
+  @ApiResponse({ status: 400, description: 'Validasi gagal' })
+  async register(
+    @Body() dto: RegisterDto,
+    @Res({ passthrough: true }) res: Response,
+  ): Promise<AuthResponseDto> {
+    const { user, accessToken } = await this.authService.register(dto);
+    this.setAuthCookie(res, accessToken);
+    return { user };
+  }
+
+  @Post('login')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Login dengan email dan password' })
+  @ApiBody({ type: LoginDto })
+  @ApiResponse({ status: 200, description: 'Login berhasil', type: AuthResponseDto })
+  @ApiResponse({ status: 401, description: 'Email atau password salah' })
+  async login(
+    @Body() dto: LoginDto,
+    @Res({ passthrough: true }) res: Response,
+  ): Promise<AuthResponseDto> {
+    const { user, accessToken } = await this.authService.loginWithCredentials(dto);
+    this.setAuthCookie(res, accessToken);
+    return { user };
+  }
+
   @Get('google')
   @UseGuards(GoogleAuthGuard)
-  @ApiOperation({ summary: 'Inisiasi login dengan Google OAuth' })
+  @ApiOperation({ summary: 'Login atau registrasi dengan Google OAuth' })
   @ApiResponse({ status: 302, description: 'Redirect ke halaman login Google' })
   googleAuth(): void {
     // Guard menangani redirect ke Google secara otomatis
@@ -48,15 +83,7 @@ export class AuthController {
     const { user, accessToken } = await this.authService.loginWithGoogle(
       req.user as GoogleOAuthUser,
     );
-
-    const isProduction = process.env.NODE_ENV === 'production';
-    res.cookie('access_token', accessToken, {
-      httpOnly: true,
-      secure: isProduction,
-      sameSite: isProduction ? 'none' : 'lax',
-      maxAge: 7 * 24 * 60 * 60 * 1000,
-    });
-
+    this.setAuthCookie(res, accessToken);
     return { user };
   }
 
@@ -80,5 +107,15 @@ export class AuthController {
   logout(@Res({ passthrough: true }) res: Response): { message: string } {
     res.clearCookie('access_token');
     return { message: 'Logout berhasil' };
+  }
+
+  private setAuthCookie(res: Response, accessToken: string): void {
+    const isProduction = process.env.NODE_ENV === 'production';
+    res.cookie('access_token', accessToken, {
+      httpOnly: true,
+      secure: isProduction,
+      sameSite: isProduction ? 'none' : 'lax',
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+    });
   }
 }
