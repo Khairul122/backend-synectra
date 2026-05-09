@@ -1,0 +1,6 @@
+node_modules
+dist
+.git
+.gemini
+test
+*.spec.ts
