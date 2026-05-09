@@ -16,3 +16,10 @@ export interface AuthUser {
   fullName: string;
   avatarUrl?: string;
 }
+
+export interface GoogleOAuthUser {
+  email: string;
+  fullName: string;
+  avatarUrl: string;
+  accessToken: string;
+}

@@ -15,9 +15,6 @@ export class UserDto {
 }
 
 export class AuthResponseDto {
-  @ApiProperty()
+  @ApiProperty({ description: 'Data user yang berhasil login' })
   user: UserDto;
-
-  @ApiProperty({ description: 'JWT Access Token' })
-  accessToken: string;
 }

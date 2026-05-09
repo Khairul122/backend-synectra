@@ -1,9 +1,27 @@
-import { Controller, Get, UseGuards, Req, Res } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
+import {
+  Controller,
+  Get,
+  Post,
+  UseGuards,
+  Req,
+  Res,
+  HttpCode,
+  HttpStatus,
+} from '@nestjs/common';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiCookieAuth,
+} from '@nestjs/swagger';
+import type { Request, Response } from 'express';
+
 import { AuthService } from './auth.service';
 import { GoogleAuthGuard } from '../../common/guards/google-auth.guard';
-import { AuthResponseDto } from './dto/auth-response.dto';
-import type { Request, Response } from 'express';
+import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
+import { CurrentUser } from '../../common/decorators/current-user.decorator';
+import { AuthResponseDto, UserDto } from './dto/auth-response.dto';
+import type { AuthUser, GoogleOAuthUser } from '../../types/auth.types';
 
 @ApiTags('auth')
 @Controller('auth')
@@ -12,21 +30,55 @@ export class AuthController {
 
   @Get('google')
   @UseGuards(GoogleAuthGuard)
-  @ApiOperation({ summary: 'Login dengan Google OAuth' })
-  @ApiResponse({ status: 200, description: 'Redirect ke Google Login' })
-  async googleAuth(@Req() req: Request) {
-    // Guard akan menangani redirect ke Google
+  @ApiOperation({ summary: 'Inisiasi login dengan Google OAuth' })
+  @ApiResponse({ status: 302, description: 'Redirect ke halaman login Google' })
+  googleAuth(): void {
+    // Guard menangani redirect ke Google secara otomatis
   }
 
   @Get('google/callback')
   @UseGuards(GoogleAuthGuard)
-  @ApiOperation({ summary: 'Google OAuth callback' })
-  @ApiResponse({
-    status: 200,
-    description: 'Berhasil login',
-    type: AuthResponseDto,
-  })
-  async googleAuthRedirect(@Req() req: Request) {
-    return this.authService.loginWithGoogle(req.user as any);
+  @ApiOperation({ summary: 'Callback Google OAuth — set JWT di httpOnly cookie' })
+  @ApiResponse({ status: 200, description: 'Login berhasil', type: AuthResponseDto })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  async googleAuthCallback(
+    @Req() req: Request,
+    @Res({ passthrough: true }) res: Response,
+  ): Promise<AuthResponseDto> {
+    const { user, accessToken } = await this.authService.loginWithGoogle(
+      req.user as GoogleOAuthUser,
+    );
+
+    const isProduction = process.env.NODE_ENV === 'production';
+    res.cookie('access_token', accessToken, {
+      httpOnly: true,
+      secure: isProduction,
+      sameSite: isProduction ? 'none' : 'lax',
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+    });
+
+    return { user };
+  }
+
+  @Get('me')
+  @UseGuards(JwtAuthGuard)
+  @ApiCookieAuth('access_token')
+  @ApiOperation({ summary: 'Dapatkan data user yang sedang login' })
+  @ApiResponse({ status: 200, description: 'Data user berhasil diambil', type: UserDto })
+  @ApiResponse({ status: 401, description: 'Unauthorized — token tidak valid atau expired' })
+  getMe(@CurrentUser() user: AuthUser): AuthUser {
+    return user;
+  }
+
+  @Post('logout')
+  @UseGuards(JwtAuthGuard)
+  @HttpCode(HttpStatus.OK)
+  @ApiCookieAuth('access_token')
+  @ApiOperation({ summary: 'Logout dan hapus JWT cookie' })
+  @ApiResponse({ status: 200, description: 'Logout berhasil' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  logout(@Res({ passthrough: true }) res: Response): { message: string } {
+    res.clearCookie('access_token');
+    return { message: 'Logout berhasil' };
   }
 }

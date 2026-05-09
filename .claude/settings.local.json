@@ -1,0 +1,18 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(claude mcp *)",
+      "mcp__vercel__list_teams",
+      "mcp__vercel__list_projects",
+      "mcp__vercel__get_runtime_logs",
+      "mcp__vercel__list_deployments",
+      "mcp__vercel__get_deployment_build_logs",
+      "Bash(vercel env *)",
+      "Bash(vercel link *)"
+    ]
+  },
+  "enableAllProjectMcpServers": true,
+  "enabledMcpjsonServers": [
+    "supabase"
+  ]
+}

@@ -2,7 +2,9 @@ import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
-import { JwtPayload } from '../../../types/auth.types';
+import type { Request } from 'express';
+
+import { JwtPayload, AuthUser } from '../../../types/auth.types';
 import { UserModel } from '../../../models/user.model';
 
 @Injectable()
@@ -12,16 +14,20 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     private userModel: UserModel,
   ) {
     super({
-      jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
+      jwtFromRequest: ExtractJwt.fromExtractors([
+        (req: Request) => req?.cookies?.access_token ?? null,
+      ]),
       ignoreExpiration: false,
       secretOrKey: configService.get<string>('jwt.secret')!,
-    } as any);
+    });
   }
 
-  async validate(payload: JwtPayload) {
+  async validate(payload: JwtPayload): Promise<AuthUser> {
     const user = await this.userModel.findByEmail(payload.email);
     if (!user) {
-      throw new UnauthorizedException();
+      throw new UnauthorizedException(
+        'Token tidak valid atau pengguna tidak ditemukan',
+      );
     }
     return user;
   }

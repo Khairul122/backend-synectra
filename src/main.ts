@@ -1,21 +1,28 @@
 import { NestFactory } from '@nestjs/core';
 import { ValidationPipe, Logger, INestApplication } from '@nestjs/common';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
+import { ExpressAdapter } from '@nestjs/platform-express';
+import cookieParser from 'cookie-parser';
+import express from 'express';
+
 import { AppModule } from './app.module';
 import { HttpExceptionFilter } from './common/filters/http-exception.filter';
 import { ResponseInterceptor } from './common/interceptors/response.interceptor';
-import { ExpressAdapter } from '@nestjs/platform-express';
-import express from 'express';
 
 // Create a singleton instance of the express server
 const server = express();
 let app: INestApplication;
 
 export const setupApp = async (nestApp: INestApplication) => {
-  // Global Prefix
+  nestApp.use(cookieParser());
+
+  nestApp.enableCors({
+    origin: process.env.FRONTEND_URL || 'http://localhost:3001',
+    credentials: true,
+  });
+
   nestApp.setGlobalPrefix('api');
 
-  // Global Validation Pipe
   nestApp.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,
@@ -24,16 +31,14 @@ export const setupApp = async (nestApp: INestApplication) => {
     }),
   );
 
-  // Global Filter & Interceptor
   nestApp.useGlobalFilters(new HttpExceptionFilter());
   nestApp.useGlobalInterceptors(new ResponseInterceptor());
 
-  // Swagger Setup
   const config = new DocumentBuilder()
     .setTitle('Synectra API')
     .setDescription('Dokumentasi API untuk platform Synectra')
     .setVersion('1.0')
-    .addBearerAuth()
+    .addCookieAuth('access_token')
     .build();
   const document = SwaggerModule.createDocument(nestApp, config);
   SwaggerModule.setup('docs', nestApp, document);
