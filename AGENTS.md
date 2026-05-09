@@ -15,6 +15,8 @@
 | **Database**     | Supabase (PostgreSQL)                       |
 | **Auth**         | Google OAuth 2.0 + JWT Token                |
 | **API Docs**     | Swagger (OpenAPI 3.0)                       |
+| **Production URL**| https://backend-synectra.vercel.app/        |
+| **Vercel Project**| prj_f8WNKCfTCEZyAyLbA774nwK7I1pn            |
 
 ---
 
