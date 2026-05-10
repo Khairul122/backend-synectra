@@ -23,7 +23,6 @@ const corsOptions: cors.CorsOptions = {
 
 // Pasang cors library langsung ke Express — sebelum NestJS bootstrap
 server.use(cors(corsOptions));
-server.options('*', cors(corsOptions));
 
 export const setupApp = async (nestApp: INestApplication) => {
   nestApp.use(cookieParser());
