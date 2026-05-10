@@ -70,13 +70,11 @@ async function bootstrap() {
   return server;
 }
 
-// In production (Vercel), we export a handler that ensures the app is bootstrapped
 export default async (req: any, res: any) => {
   await bootstrap();
   server(req, res);
 };
 
-// For local development, still call bootstrap
 if (process.env.NODE_ENV !== 'production') {
   bootstrap();
 }
