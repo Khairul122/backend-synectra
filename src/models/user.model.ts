@@ -25,7 +25,9 @@ export class UserModel {
       .eq('email', email)
       .single();
 
-    if (error || !data) return null;
+    // PGRST116 = baris tidak ditemukan (bukan error koneksi/tabel)
+    if (error && error.code !== 'PGRST116') throw error;
+    if (!data) return null;
 
     return this.mapToAuthUser(data);
   }
@@ -40,7 +42,8 @@ export class UserModel {
       .eq('email', email)
       .single();
 
-    if (error || !data) return null;
+    if (error && error.code !== 'PGRST116') throw error;
+    if (!data) return null;
 
     return {
       ...this.mapToAuthUser(data),
