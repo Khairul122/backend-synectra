@@ -16,22 +16,11 @@ let app: INestApplication;
 export const setupApp = async (nestApp: INestApplication) => {
   nestApp.use(cookieParser());
 
-  const allowedOrigins = [
-    'http://localhost:5173',
-    'http://localhost:3000',
-    'http://localhost:3001',
-    'https://frontend-synectra.vercel.app',
-    ...(process.env.FRONTEND_URL ? process.env.FRONTEND_URL.split(',').map((o) => o.trim()) : []),
-  ];
-
   nestApp.enableCors({
-    origin: (origin, callback) => {
-      // izinkan request tanpa origin (Postman, server-to-server)
-      if (!origin) return callback(null, true);
-      if (allowedOrigins.includes(origin)) return callback(null, true);
-      callback(new Error(`Origin ${origin} tidak diizinkan oleh CORS`));
-    },
+    origin: true,
     credentials: true,
+    methods: ['GET', 'POST', 'PATCH', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'Cookie'],
   });
 
   nestApp.setGlobalPrefix('api', { exclude: ['/'] });
