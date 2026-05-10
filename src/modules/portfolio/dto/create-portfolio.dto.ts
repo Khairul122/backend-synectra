@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsString, IsNotEmpty, IsOptional, IsUrl, MaxLength } from 'class-validator';
+import { IsString, IsNotEmpty, IsOptional, IsArray, IsUrl, MaxLength } from 'class-validator';
 
 export class CreatePortfolioDto {
   @ApiProperty({ example: 'Synectra Platform' })
@@ -17,6 +17,12 @@ export class CreatePortfolioDto {
   @IsString()
   @IsOptional()
   image?: string;
+
+  @ApiProperty({ example: ['https://example.com/img1.jpg', 'https://example.com/img2.jpg'], required: false })
+  @IsArray()
+  @IsString({ each: true })
+  @IsOptional()
+  images?: string[];
 
   @ApiProperty({ example: 'Web App', required: false })
   @IsString()
