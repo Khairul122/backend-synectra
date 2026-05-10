@@ -4,6 +4,7 @@ import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { ExpressAdapter } from '@nestjs/platform-express';
 import cookieParser from 'cookie-parser';
 import express from 'express';
+import cors from 'cors';
 
 import { AppModule } from './app.module';
 import { HttpExceptionFilter } from './common/filters/http-exception.filter';
@@ -12,29 +13,20 @@ import { ResponseInterceptor } from './common/interceptors/response.interceptor'
 const server = express();
 let app: INestApplication;
 
-// CORS dipasang langsung di Express — header selalu ada meski NestJS error/crash
-server.use((req: any, res: any, next: any) => {
-  const origin = req.headers.origin;
-  if (origin) {
-    res.setHeader('Access-Control-Allow-Origin', origin);
-    res.setHeader('Access-Control-Allow-Credentials', 'true');
-    res.setHeader('Access-Control-Allow-Methods', 'GET,POST,PUT,PATCH,DELETE,OPTIONS');
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type,Authorization,Cookie,X-Requested-With');
-    res.setHeader('Vary', 'Origin');
-  }
-  if (req.method === 'OPTIONS') return res.sendStatus(204);
-  next();
-});
+const corsOptions: cors.CorsOptions = {
+  origin: true,
+  credentials: true,
+  methods: ['GET', 'HEAD', 'PUT', 'PATCH', 'POST', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'Cookie', 'X-Requested-With'],
+  optionsSuccessStatus: 204,
+};
+
+// Pasang cors library langsung ke Express — sebelum NestJS bootstrap
+server.use(cors(corsOptions));
+server.options('*', cors(corsOptions));
 
 export const setupApp = async (nestApp: INestApplication) => {
   nestApp.use(cookieParser());
-
-  nestApp.enableCors({
-    origin: true,
-    credentials: true,
-    methods: ['GET', 'POST', 'PATCH', 'PUT', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'Cookie', 'X-Requested-With'],
-  });
 
   nestApp.setGlobalPrefix('api', { exclude: ['/'] });
 
@@ -69,7 +61,9 @@ export const setupApp = async (nestApp: INestApplication) => {
 async function bootstrap() {
   if (!app) {
     const logger = new Logger('Bootstrap');
-    app = await NestFactory.create(AppModule, new ExpressAdapter(server));
+    app = await NestFactory.create(AppModule, new ExpressAdapter(server), {
+      cors: false, // matikan CORS bawaan NestJS, pakai cors library
+    });
     await setupApp(app);
 
     if (process.env.NODE_ENV !== 'production') {
