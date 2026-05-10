@@ -21,7 +21,7 @@ export const setupApp = async (nestApp: INestApplication) => {
     credentials: true,
   });
 
-  nestApp.setGlobalPrefix('api');
+  nestApp.setGlobalPrefix('api', { exclude: ['/'] });
 
   nestApp.useGlobalPipes(
     new ValidationPipe({
