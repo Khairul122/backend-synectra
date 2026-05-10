@@ -25,6 +25,8 @@
 Berikut adalah daftar fitur dan arsitektur yang telah berhasil diimplementasikan:
 
 1. **Autentikasi (Auth Module)**
+   - Registrasi akun baru dengan email dan password (`POST /auth/register`)
+   - Login menggunakan kredensial email dan password (`POST /auth/login`)
    - Inisiasi login menggunakan Google OAuth 2.0 (`GET /auth/google`)
    - Handling Google OAuth Callback & pembuatan token JWT (`GET /auth/google/callback`)
    - Otorisasi via JWT berbasis `httpOnly` cookie untuk keamanan maksimal
@@ -38,7 +40,7 @@ Berikut adalah daftar fitur dan arsitektur yang telah berhasil diimplementasikan
 
 3. **Database & Data Modeling**
    - Setup koneksi ke Supabase (PostgreSQL)
-   - Pembuatan `user.model.ts` untuk mengelola interaksi tabel user pada database
+   - Pembuatan `user.model.ts` untuk mengelola data user, termasuk login Google dan penyimpanan *password hash* untuk login kredensial
 
 4. **Infrastruktur & Standar API**
    - Dokumentasi API interaktif dengan **Swagger (OpenAPI 3.0)** (`/api/docs`)
