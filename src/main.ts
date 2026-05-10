@@ -9,7 +9,6 @@ import { AppModule } from './app.module';
 import { HttpExceptionFilter } from './common/filters/http-exception.filter';
 import { ResponseInterceptor } from './common/interceptors/response.interceptor';
 
-// Create a singleton instance of the express server
 const server = express();
 let app: INestApplication;
 
