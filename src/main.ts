@@ -16,8 +16,20 @@ let app: INestApplication;
 export const setupApp = async (nestApp: INestApplication) => {
   nestApp.use(cookieParser());
 
+  const allowedOrigins = [
+    'http://localhost:5173',
+    'http://localhost:3000',
+    'http://localhost:3001',
+    ...(process.env.FRONTEND_URL ? process.env.FRONTEND_URL.split(',').map((o) => o.trim()) : []),
+  ];
+
   nestApp.enableCors({
-    origin: process.env.FRONTEND_URL || 'http://localhost:3001',
+    origin: (origin, callback) => {
+      // izinkan request tanpa origin (Postman, server-to-server)
+      if (!origin) return callback(null, true);
+      if (allowedOrigins.includes(origin)) return callback(null, true);
+      callback(new Error(`Origin ${origin} tidak diizinkan oleh CORS`));
+    },
     credentials: true,
   });
 
