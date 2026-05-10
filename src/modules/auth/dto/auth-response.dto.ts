@@ -12,6 +12,9 @@ export class UserDto {
 
   @ApiProperty({ example: 'https://example.com/avatar.jpg', required: false })
   avatarUrl?: string;
+
+  @ApiProperty({ example: 'client', enum: ['client', 'admin', 'staff'] })
+  role: string;
 }
 
 export class AuthResponseDto {

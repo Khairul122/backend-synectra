@@ -21,11 +21,10 @@ export class UserModel {
   async findByEmail(email: string): Promise<AuthUser | null> {
     const { data, error } = await this.supabase
       .from(SUPABASE_TABLES.USERS)
-      .select('id, email, full_name, avatar_url')
+      .select('id, email, full_name, avatar_url, role')
       .eq('email', email)
       .single();
 
-    // PGRST116 = baris tidak ditemukan (bukan error koneksi/tabel)
     if (error && error.code !== 'PGRST116') throw error;
     if (!data) return null;
 
@@ -38,7 +37,7 @@ export class UserModel {
   async findByEmailWithPassword(email: string): Promise<UserRecord | null> {
     const { data, error } = await this.supabase
       .from(SUPABASE_TABLES.USERS)
-      .select('id, email, full_name, avatar_url, password_hash')
+      .select('id, email, full_name, avatar_url, role, password_hash')
       .eq('email', email)
       .single();
 
@@ -52,7 +51,7 @@ export class UserModel {
   }
 
   /**
-   * Buat user baru dari Google OAuth (tanpa password)
+   * Buat user baru dari Google OAuth (tanpa password) — role default: client
    */
   async create(userData: Partial<AuthUser>): Promise<AuthUser> {
     const { data, error } = await this.supabase
@@ -62,9 +61,10 @@ export class UserModel {
           email: userData.email,
           full_name: userData.fullName,
           avatar_url: userData.avatarUrl,
+          role: userData.role ?? 'client',
         },
       ])
-      .select('id, email, full_name, avatar_url')
+      .select('id, email, full_name, avatar_url, role')
       .single();
 
     if (error) throw error;
@@ -73,7 +73,7 @@ export class UserModel {
   }
 
   /**
-   * Buat user baru dengan password hash (registrasi email)
+   * Buat user baru dengan password hash — role default: client
    */
   async createWithPassword(
     userData: Pick<AuthUser, 'email' | 'fullName'>,
@@ -86,9 +86,10 @@ export class UserModel {
           email: userData.email,
           full_name: userData.fullName,
           password_hash: passwordHash,
+          role: 'client',
         },
       ])
-      .select('id, email, full_name, avatar_url')
+      .select('id, email, full_name, avatar_url, role')
       .single();
 
     if (error) throw error;
@@ -102,6 +103,7 @@ export class UserModel {
       email: data.email,
       fullName: data.full_name,
       avatarUrl: data.avatar_url,
+      role: (data.role as AuthUser['role']) ?? 'client',
     };
   }
 }

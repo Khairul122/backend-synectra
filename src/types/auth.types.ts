@@ -5,9 +5,12 @@ export interface GoogleProfile {
   photos: { value: string }[];
 }
 
+export type UserRole = 'client' | 'admin' | 'staff';
+
 export interface JwtPayload {
   sub: string;
   email: string;
+  role: UserRole;
 }
 
 export interface AuthUser {
@@ -15,6 +18,7 @@ export interface AuthUser {
   email: string;
   fullName: string;
   avatarUrl?: string;
+  role: UserRole;
 }
 
 export interface GoogleOAuthUser {
