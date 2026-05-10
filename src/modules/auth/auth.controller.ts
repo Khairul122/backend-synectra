@@ -73,18 +73,20 @@ export class AuthController {
 
   @Get('google/callback')
   @UseGuards(GoogleAuthGuard)
-  @ApiOperation({ summary: 'Callback Google OAuth — set JWT di httpOnly cookie' })
-  @ApiResponse({ status: 200, description: 'Login berhasil', type: AuthResponseDto })
+  @ApiOperation({ summary: 'Callback Google OAuth — set JWT cookie lalu redirect ke frontend' })
+  @ApiResponse({ status: 302, description: 'Redirect ke dashboard frontend' })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   async googleAuthCallback(
     @Req() req: Request,
-    @Res({ passthrough: true }) res: Response,
-  ): Promise<AuthResponseDto> {
+    @Res() res: Response,
+  ): Promise<void> {
     const { user, accessToken } = await this.authService.loginWithGoogle(
       req.user as GoogleOAuthUser,
     );
     this.setAuthCookie(res, accessToken);
-    return { user };
+
+    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
+    res.redirect(`${frontendUrl}/dashboard`);
   }
 
   @Get('me')
