@@ -22,11 +22,12 @@
 
 ## 🚀 Fitur yang Sudah Dibuat (Implemented Features)
 
-Berikut adalah daftar fitur dan arsitektur yang telah berhasil diimplementasikan:
+Berikut adalah daftar fitur dan arsitektur yang telah berhasil diimplementasikan (Update per tanggal ini):
 
 1. **Autentikasi (Auth Module)**
-   - Registrasi akun baru dengan email dan password (`POST /auth/register`)
-   - Login menggunakan kredensial email dan password (`POST /auth/login`)
+   - Registrasi akun baru dengan email dan password (`POST /auth/register`) beserta implementasi validasi dengan `register.dto.ts`
+   - Login menggunakan kredensial email dan password (`POST /auth/login`) beserta implementasi validasi dengan `login.dto.ts`
+   - Pembuatan skema response standar menggunakan `auth-response.dto.ts`
    - Inisiasi login menggunakan Google OAuth 2.0 (`GET /auth/google`)
    - Handling Google OAuth Callback & pembuatan token JWT (`GET /auth/google/callback`)
    - Otorisasi via JWT berbasis `httpOnly` cookie untuk keamanan maksimal
