@@ -1,0 +1,57 @@
+import { Controller, Get, Post, Patch, Body, Param, UseGuards, HttpCode, HttpStatus, Req } from '@nestjs/common';
+import { ApiTags, ApiOperation, ApiResponse, ApiCookieAuth, ApiParam } from '@nestjs/swagger';
+import { OrdersService } from './orders.service';
+import { CreateOrderDto } from './dto/create-order.dto';
+import { UpdateOrderStatusDto } from './dto/update-order-status.dto';
+import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
+import { AdminGuard } from '../../common/guards/admin.guard';
+import type { Request } from 'express';
+import type { AuthUser } from '../../types/auth.types';
+
+@ApiTags('orders')
+@Controller('orders')
+export class OrdersController {
+  constructor(private readonly ordersService: OrdersService) {}
+
+  @Get()
+  @UseGuards(JwtAuthGuard)
+  @ApiCookieAuth('access_token')
+  @ApiOperation({ summary: 'Ambil semua order (admin) atau order milik sendiri (client)' })
+  @ApiResponse({ status: 200, description: 'Daftar order' })
+  findAll(@Req() req: Request) {
+    const user = req.user as AuthUser;
+    if (user.role === 'admin') return this.ordersService.findAll();
+    return this.ordersService.findByClient(user.id);
+  }
+
+  @Get(':id')
+  @UseGuards(JwtAuthGuard)
+  @ApiCookieAuth('access_token')
+  @ApiOperation({ summary: 'Ambil detail order beserta payments dan progress' })
+  @ApiParam({ name: 'id', type: 'string' })
+  @ApiResponse({ status: 200, description: 'Detail order' })
+  @ApiResponse({ status: 404, description: 'Order tidak ditemukan' })
+  findOne(@Param('id') id: string) {
+    return this.ordersService.findDetail(id);
+  }
+
+  @Post()
+  @UseGuards(JwtAuthGuard, AdminGuard)
+  @ApiCookieAuth('access_token')
+  @HttpCode(HttpStatus.CREATED)
+  @ApiOperation({ summary: 'Buat order baru (Admin only)' })
+  @ApiResponse({ status: 201, description: 'Order berhasil dibuat' })
+  create(@Body() dto: CreateOrderDto) {
+    return this.ordersService.create(dto);
+  }
+
+  @Patch(':id/status')
+  @UseGuards(JwtAuthGuard, AdminGuard)
+  @ApiCookieAuth('access_token')
+  @ApiOperation({ summary: 'Update status order (Admin only)' })
+  @ApiParam({ name: 'id', type: 'string' })
+  @ApiResponse({ status: 200, description: 'Status order berhasil diupdate' })
+  updateStatus(@Param('id') id: string, @Body() dto: UpdateOrderStatusDto) {
+    return this.ordersService.updateStatus(id, dto);
+  }
+}

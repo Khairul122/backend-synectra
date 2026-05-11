@@ -2,7 +2,13 @@ export const SUPABASE_TABLES = {
   USERS:     'users',
   CLIENTS:   'clients',
   PORTFOLIO: 'portofolio',
-  BANNERS:   'banners',
+  BANNERS:       'banners',
+  BANK_ACCOUNTS: 'bank_accounts',
+  SOCIAL_MEDIA:     'social_media',
+  CONTACT_CHANNELS:  'contact_channels',
+  ORDERS:            'orders',
+  PAYMENTS:          'payments',
+  PROGRESS_REPORTS:  'progress_reports',
 };
 
 export const AUTH_MESSAGES = {

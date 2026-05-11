@@ -5,6 +5,12 @@ import { AppService } from './app.service';
 import { AuthModule } from './modules/auth/auth.module';
 import { PortfolioModule } from './modules/portfolio/portfolio.module';
 import { BannersModule } from './modules/banners/banners.module';
+import { BankAccountsModule } from './modules/bank-accounts/bank-accounts.module';
+import { SocialMediaModule } from './modules/social-media/social-media.module';
+import { ContactsModule } from './modules/contacts/contacts.module';
+import { OrdersModule } from './modules/orders/orders.module';
+import { PaymentsModule } from './modules/payments/payments.module';
+import { ProgressReportsModule } from './modules/progress-reports/progress-reports.module';
 import supabaseConfig from './config/supabase.config';
 import jwtConfig from './config/jwt.config';
 import googleAuthConfig from './config/google-auth.config';
@@ -18,6 +24,12 @@ import googleAuthConfig from './config/google-auth.config';
     AuthModule,
     PortfolioModule,
     BannersModule,
+    BankAccountsModule,
+    SocialMediaModule,
+    ContactsModule,
+    OrdersModule,
+    PaymentsModule,
+    ProgressReportsModule,
   ],
   controllers: [AppController],
   providers: [AppService],
