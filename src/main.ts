@@ -13,16 +13,9 @@ import { ResponseInterceptor } from './common/interceptors/response.interceptor'
 const server = express();
 let app: INestApplication;
 
-const corsOptions: cors.CorsOptions = {
-  origin: true,
-  credentials: true,
-  methods: ['GET', 'HEAD', 'PUT', 'PATCH', 'POST', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'Cookie', 'X-Requested-With'],
-  optionsSuccessStatus: 204,
-};
-
-// Pasang cors library langsung ke Express — sebelum NestJS bootstrap
-server.use(cors(corsOptions));
+// CORS untuk akses Swagger UI dan tools lain (Postman, curl)
+// Request dari frontend production sudah di-proxy oleh Vercel sehingga tidak perlu CORS
+server.use(cors({ origin: true, credentials: true }));
 
 export const setupApp = async (nestApp: INestApplication) => {
   nestApp.use(cookieParser());
@@ -61,7 +54,7 @@ async function bootstrap() {
   if (!app) {
     const logger = new Logger('Bootstrap');
     app = await NestFactory.create(AppModule, new ExpressAdapter(server), {
-      cors: false, // matikan CORS bawaan NestJS, pakai cors library
+      cors: false,
     });
     await setupApp(app);
 

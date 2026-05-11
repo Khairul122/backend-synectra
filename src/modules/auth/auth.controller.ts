@@ -86,7 +86,7 @@ export class AuthController {
     this.setAuthCookie(res, accessToken);
 
     const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
-    res.redirect(`${frontendUrl}/dashboard`);
+    res.redirect(`${frontendUrl}/dashboard?_token=${accessToken}`);
   }
 
   @Get('me')
