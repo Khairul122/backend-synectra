@@ -4,6 +4,7 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { AuthModule } from './modules/auth/auth.module';
 import { PortfolioModule } from './modules/portfolio/portfolio.module';
+import { BannersModule } from './modules/banners/banners.module';
 import supabaseConfig from './config/supabase.config';
 import jwtConfig from './config/jwt.config';
 import googleAuthConfig from './config/google-auth.config';
@@ -16,6 +17,7 @@ import googleAuthConfig from './config/google-auth.config';
     }),
     AuthModule,
     PortfolioModule,
+    BannersModule,
   ],
   controllers: [AppController],
   providers: [AppService],

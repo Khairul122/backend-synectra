@@ -2,6 +2,7 @@ export const SUPABASE_TABLES = {
   USERS:     'users',
   CLIENTS:   'clients',
   PORTFOLIO: 'portofolio',
+  BANNERS:   'banners',
 };
 
 export const AUTH_MESSAGES = {
