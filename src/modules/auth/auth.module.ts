@@ -9,6 +9,7 @@ import { AuthController } from './auth.controller';
 import { GoogleStrategy } from './strategies/google.strategy';
 import { JwtStrategy } from './strategies/jwt.strategy';
 import { UserModel } from '../../models/user.model';
+import { ClientModel } from '../../models/client.model';
 
 @Module({
   imports: [
@@ -25,7 +26,7 @@ import { UserModel } from '../../models/user.model';
     }),
   ],
   controllers: [AuthController],
-  providers: [AuthService, GoogleStrategy, JwtStrategy, UserModel],
+  providers: [AuthService, GoogleStrategy, JwtStrategy, UserModel, ClientModel],
   exports: [AuthService, UserModel],
 })
 export class AuthModule {}

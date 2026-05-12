@@ -5,6 +5,7 @@ import { ProgressReportModel } from '../../models/progress-report.model';
 import { Order } from '../../types/order.types';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { UpdateOrderStatusDto } from './dto/update-order-status.dto';
+import { UpdateOrderDetailsDto } from './dto/update-order-details.dto';
 
 @Injectable()
 export class OrdersService {
@@ -40,6 +41,13 @@ export class OrdersService {
     const order = await this.orderModel.findById(id);
     if (!order) throw new NotFoundException(`Order dengan id ${id} tidak ditemukan`);
     const updated = await this.orderModel.updateStatus(id, dto.status);
+    return updated!;
+  }
+
+  async updateDetails(id: string, dto: UpdateOrderDetailsDto): Promise<Order> {
+    const order = await this.orderModel.findById(id);
+    if (!order) throw new NotFoundException(`Order dengan id ${id} tidak ditemukan`);
+    const updated = await this.orderModel.updateDetails(id, dto);
     return updated!;
   }
 }

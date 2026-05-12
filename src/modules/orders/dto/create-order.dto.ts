@@ -2,10 +2,10 @@ import { ApiProperty } from '@nestjs/swagger';
 import { IsDateString, IsNotEmpty, IsNumber, IsOptional, IsString, IsUUID } from 'class-validator';
 
 export class CreateOrderDto {
-  @ApiProperty({ example: 'uuid-client-id' })
+  @ApiProperty({ example: 'uuid-client-id', required: false })
   @IsUUID()
-  @IsNotEmpty()
-  clientId: string;
+  @IsOptional()
+  clientId?: string;
 
   @ApiProperty({ example: 'Pembuatan Web Company Profile' })
   @IsString()

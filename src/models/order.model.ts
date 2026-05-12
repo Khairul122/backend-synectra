@@ -78,6 +78,22 @@ export class OrderModel {
     return data ? this.map(data) : null;
   }
 
+  async updateDetails(id: string, payload: { totalPrice?: number; deadline?: string; description?: string }): Promise<Order | null> {
+    const { data, error } = await this.supabase
+      .from(SUPABASE_TABLES.ORDERS)
+      .update({
+        ...(payload.totalPrice  !== undefined && { total_price: payload.totalPrice }),
+        ...(payload.deadline    !== undefined && { deadline:    payload.deadline }),
+        ...(payload.description !== undefined && { description: payload.description }),
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', id)
+      .select(SELECT)
+      .single();
+    if (error && error.code !== 'PGRST116') throw error;
+    return data ? this.map(data) : null;
+  }
+
   private map(row: Record<string, any>): Order {
     const user = row.users as any;
     return {

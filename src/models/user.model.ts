@@ -97,6 +97,39 @@ export class UserModel {
     return this.mapToAuthUser(data);
   }
 
+  async findByIdWithPassword(id: string): Promise<UserRecord | null> {
+    const { data, error } = await this.supabase
+      .from(SUPABASE_TABLES.USERS)
+      .select('id, email, full_name, avatar_url, role, password_hash')
+      .eq('id', id)
+      .single();
+    if (error && error.code !== 'PGRST116') throw error;
+    if (!data) return null;
+    return { ...this.mapToAuthUser(data), passwordHash: data.password_hash };
+  }
+
+  async updateProfile(id: string, payload: { fullName?: string; email?: string }): Promise<AuthUser> {
+    const { data, error } = await this.supabase
+      .from(SUPABASE_TABLES.USERS)
+      .update({
+        ...(payload.fullName !== undefined && { full_name: payload.fullName }),
+        ...(payload.email    !== undefined && { email:     payload.email }),
+      })
+      .eq('id', id)
+      .select('id, email, full_name, avatar_url, role')
+      .single();
+    if (error) throw error;
+    return this.mapToAuthUser(data);
+  }
+
+  async updatePassword(id: string, newPasswordHash: string): Promise<void> {
+    const { error } = await this.supabase
+      .from(SUPABASE_TABLES.USERS)
+      .update({ password_hash: newPasswordHash })
+      .eq('id', id);
+    if (error) throw error;
+  }
+
   private mapToAuthUser(data: Record<string, string>): AuthUser {
     return {
       id: data.id,

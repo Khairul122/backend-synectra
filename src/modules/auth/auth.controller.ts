@@ -2,6 +2,7 @@ import {
   Controller,
   Get,
   Post,
+  Patch,
   Body,
   UseGuards,
   Req,
@@ -24,13 +25,19 @@ import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
+import { UpdateProfileDto } from './dto/update-profile.dto';
+import { ChangePasswordDto } from './dto/change-password.dto';
 import { AuthResponseDto, UserDto } from './dto/auth-response.dto';
 import type { AuthUser, GoogleOAuthUser } from '../../types/auth.types';
+import { UserModel } from '../../models/user.model';
 
 @ApiTags('auth')
 @Controller('auth')
 export class AuthController {
-  constructor(private readonly authService: AuthService) {}
+  constructor(
+    private readonly authService: AuthService,
+    private readonly userModel: UserModel,
+  ) {}
 
   @Post('register')
   @HttpCode(HttpStatus.CREATED)
@@ -93,10 +100,32 @@ export class AuthController {
   @UseGuards(JwtAuthGuard)
   @ApiCookieAuth('access_token')
   @ApiOperation({ summary: 'Dapatkan data user yang sedang login' })
-  @ApiResponse({ status: 200, description: 'Data user berhasil diambil', type: UserDto })
+  @ApiResponse({ status: 200, description: 'Data user berhasil diambil' })
   @ApiResponse({ status: 401, description: 'Unauthorized — token tidak valid atau expired' })
-  getMe(@CurrentUser() user: AuthUser): AuthUser {
-    return user;
+  async getMe(@CurrentUser() user: AuthUser): Promise<AuthUser & { hasPassword: boolean }> {
+    const record = await this.userModel.findByIdWithPassword(user.id);
+    return { ...user, hasPassword: !!(record?.passwordHash) };
+  }
+
+  @Patch('profile')
+  @UseGuards(JwtAuthGuard)
+  @ApiCookieAuth('access_token')
+  @ApiOperation({ summary: 'Update profil sendiri' })
+  @ApiResponse({ status: 200, description: 'Profil berhasil diupdate' })
+  updateProfile(@CurrentUser() user: AuthUser, @Body() dto: UpdateProfileDto) {
+    return this.authService.updateProfile(user.id, dto);
+  }
+
+  @Patch('password')
+  @UseGuards(JwtAuthGuard)
+  @ApiCookieAuth('access_token')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Ganti password sendiri' })
+  @ApiResponse({ status: 200, description: 'Password berhasil diganti' })
+  @ApiResponse({ status: 400, description: 'Password saat ini salah atau akun Google' })
+  async changePassword(@CurrentUser() user: AuthUser, @Body() dto: ChangePasswordDto) {
+    await this.authService.changePassword(user.id, dto);
+    return { message: 'Password berhasil diperbarui' };
   }
 
   @Post('logout')

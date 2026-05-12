@@ -3,6 +3,7 @@ import { ApiTags, ApiOperation, ApiResponse, ApiCookieAuth, ApiParam } from '@ne
 import { OrdersService } from './orders.service';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { UpdateOrderStatusDto } from './dto/update-order-status.dto';
+import { UpdateOrderDetailsDto } from './dto/update-order-details.dto';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { AdminGuard } from '../../common/guards/admin.guard';
 import type { Request } from 'express';
@@ -36,12 +37,17 @@ export class OrdersController {
   }
 
   @Post()
-  @UseGuards(JwtAuthGuard, AdminGuard)
+  @UseGuards(JwtAuthGuard)
   @ApiCookieAuth('access_token')
   @HttpCode(HttpStatus.CREATED)
-  @ApiOperation({ summary: 'Buat order baru (Admin only)' })
+  @ApiOperation({ summary: 'Buat order baru (Admin atau Client)' })
   @ApiResponse({ status: 201, description: 'Order berhasil dibuat' })
-  create(@Body() dto: CreateOrderDto) {
+  create(@Body() dto: CreateOrderDto, @Req() req: Request) {
+    const user = req.user as AuthUser;
+    // Client: clientId otomatis dari JWT; Admin: bisa tentukan clientId sendiri
+    if (user.role !== 'admin') {
+      dto.clientId = user.id;
+    }
     return this.ordersService.create(dto);
   }
 
@@ -53,5 +59,15 @@ export class OrdersController {
   @ApiResponse({ status: 200, description: 'Status order berhasil diupdate' })
   updateStatus(@Param('id') id: string, @Body() dto: UpdateOrderStatusDto) {
     return this.ordersService.updateStatus(id, dto);
+  }
+
+  @Patch(':id/details')
+  @UseGuards(JwtAuthGuard, AdminGuard)
+  @ApiCookieAuth('access_token')
+  @ApiOperation({ summary: 'Update harga, deadline, deskripsi order (Admin only)' })
+  @ApiParam({ name: 'id', type: 'string' })
+  @ApiResponse({ status: 200, description: 'Detail order berhasil diupdate' })
+  updateDetails(@Param('id') id: string, @Body() dto: UpdateOrderDetailsDto) {
+    return this.ordersService.updateDetails(id, dto);
   }
 }
