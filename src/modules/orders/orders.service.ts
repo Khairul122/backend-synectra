@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, ForbiddenException, BadRequestException } from '@nestjs/common';
 import { OrderModel } from '../../models/order.model';
 import { PaymentModel } from '../../models/payment.model';
 import { ProgressReportModel } from '../../models/progress-report.model';
@@ -62,6 +62,27 @@ export class OrdersService {
     const order = await this.orderModel.findById(id);
     if (!order) throw new NotFoundException(`Order dengan id ${id} tidak ditemukan`);
     const updated = await this.orderModel.updateDetails(id, dto);
+    return updated!;
+  }
+
+  async completeByClient(id: string, userId: string, userRole: string): Promise<Order> {
+    const order = await this.orderModel.findById(id);
+    if (!order) throw new NotFoundException(`Order dengan id ${id} tidak ditemukan`);
+
+    // Admin bisa selesaikan order siapa saja
+    if (userRole !== 'admin' && order.clientId !== userId) {
+      throw new ForbiddenException('Anda tidak memiliki akses ke order ini');
+    }
+
+    // Hanya bisa diselesaikan jika status bukan pending, completed, atau canceled
+    const allowedStatuses = ['in_progress', 'testing', 'revision'];
+    if (!allowedStatuses.includes(order.status)) {
+      throw new BadRequestException(
+        `Order dengan status "${order.status}" tidak dapat diselesaikan. Status harus in_progress, testing, atau revision.`,
+      );
+    }
+
+    const updated = await this.orderModel.updateStatus(id, 'completed');
     return updated!;
   }
 }

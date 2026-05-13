@@ -1,22 +1,17 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import * as nodemailer from 'nodemailer';
+import { Resend } from 'resend';
 
 @Injectable()
 export class MailService {
   private readonly logger = new Logger(MailService.name);
-  private transporter: nodemailer.Transporter;
+  private resend: Resend | null = null;
 
   constructor(private configService: ConfigService) {
-    this.transporter = nodemailer.createTransport({
-      host:   this.configService.get<string>('MAIL_HOST') ?? 'smtp.gmail.com',
-      port:   Number(this.configService.get<string>('MAIL_PORT') ?? 587),
-      secure: false,
-      auth: {
-        user: this.configService.get<string>('MAIL_USER'),
-        pass: this.configService.get<string>('MAIL_PASS'),
-      },
-    });
+    const apiKey = this.configService.get<string>('RESEND_API_KEY');
+    if (apiKey) {
+      this.resend = new Resend(apiKey);
+    }
   }
 
   async sendNewOrderNotification(order: {
@@ -27,90 +22,95 @@ export class MailService {
     clientName: string | null;
     clientEmail: string | null;
   }): Promise<void> {
-    const adminEmail = this.configService.get<string>('ADMIN_EMAIL');
-    const frontendUrl = this.configService.get<string>('FRONTEND_URL') ?? 'https://frontend-synectra.vercel.app';
-
-    if (!adminEmail || !this.configService.get('MAIL_USER')) {
-      this.logger.warn('Email config tidak lengkap, notifikasi tidak dikirim.');
+    if (!this.resend) {
+      this.logger.warn('RESEND_API_KEY belum dikonfigurasi, notifikasi tidak dikirim.');
       return;
     }
 
+    const adminEmail = this.configService.get<string>('ADMIN_EMAIL');
+    if (!adminEmail) {
+      this.logger.warn('ADMIN_EMAIL belum dikonfigurasi.');
+      return;
+    }
+
+    const frontendUrl = this.configService.get<string>('FRONTEND_URL') ?? 'https://frontend-synectra.vercel.app';
     const orderDetailUrl = `${frontendUrl}/orders/${order.id}`;
     const category = order.serviceCategory?.replace(/_/g, ' ') ?? 'Tidak ditentukan';
     const description = order.description
-      ? order.description.replace(/<[^>]*>/g, ' ').trim().slice(0, 300)
+      ? order.description.replace(/<[^>]*>/g, ' ').trim().slice(0, 400)
       : 'Tidak ada deskripsi.';
 
-    const html = `
-<!DOCTYPE html>
+    const html = `<!DOCTYPE html>
 <html lang="id">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
-    body { font-family: 'Segoe UI', Arial, sans-serif; background: #F5F0E8; margin: 0; padding: 20px; }
-    .container { max-width: 560px; margin: 0 auto; }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Segoe UI', Arial, sans-serif; background: #F5F0E8; padding: 24px; }
+    .wrap { max-width: 560px; margin: 0 auto; }
     .header { background: #0D0D0D; padding: 24px 28px; border: 2px solid #0D0D0D; }
-    .header h1 { color: #FFD000; font-size: 20px; margin: 0; font-weight: 800; letter-spacing: 1px; text-transform: uppercase; }
-    .header p { color: #ffffff80; font-size: 11px; margin: 4px 0 0; font-family: monospace; }
-    .badge { display: inline-block; background: #FFD000; color: #0D0D0D; font-size: 10px; font-weight: 800; font-family: monospace; text-transform: uppercase; padding: 3px 8px; border: 2px solid #0D0D0D; margin-bottom: 16px; }
+    .header-title { color: #FFD000; font-size: 20px; font-weight: 800; letter-spacing: 1px; text-transform: uppercase; }
+    .header-sub { color: rgba(255,255,255,0.4); font-size: 11px; margin-top: 4px; font-family: monospace; }
     .body { background: #ffffff; border: 2px solid #0D0D0D; border-top: none; padding: 28px; }
-    .field { margin-bottom: 18px; border-bottom: 1px solid #f0ebe3; padding-bottom: 14px; }
-    .field:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
-    .field-label { font-size: 10px; font-family: monospace; text-transform: uppercase; color: #0D0D0D80; letter-spacing: 1px; margin-bottom: 4px; }
-    .field-value { font-size: 15px; font-weight: 700; color: #0D0D0D; }
-    .desc { font-size: 13px; font-weight: 400; color: #0D0D0D90; line-height: 1.6; }
-    .cta { display: block; margin-top: 24px; padding: 14px 24px; background: #FFD000; border: 2px solid #0D0D0D; color: #0D0D0D; font-weight: 800; font-size: 13px; text-decoration: none; text-align: center; text-transform: uppercase; letter-spacing: 1px; box-shadow: 4px 4px 0 #0D0D0D; }
-    .footer { padding: 14px 28px; background: #0D0D0D; border: 2px solid #0D0D0D; border-top: none; }
-    .footer p { color: #ffffff40; font-size: 11px; font-family: monospace; margin: 0; }
+    .badge { display: inline-block; background: #FFD000; color: #0D0D0D; font-size: 10px; font-weight: 800; font-family: monospace; text-transform: uppercase; padding: 4px 10px; border: 2px solid #0D0D0D; margin-bottom: 20px; }
+    .field { margin-bottom: 16px; padding-bottom: 16px; border-bottom: 1px solid #F0EBE3; }
+    .field:last-of-type { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+    .label { font-size: 10px; font-family: monospace; text-transform: uppercase; color: rgba(13,13,13,0.5); letter-spacing: 1px; margin-bottom: 4px; }
+    .value { font-size: 15px; font-weight: 700; color: #0D0D0D; }
+    .sub { font-size: 13px; color: rgba(13,13,13,0.6); line-height: 1.6; margin-top: 4px; }
+    .cta { display: block; margin-top: 24px; padding: 14px 20px; background: #FFD000; border: 2px solid #0D0D0D; color: #0D0D0D; font-weight: 800; font-size: 13px; text-decoration: none; text-align: center; text-transform: uppercase; letter-spacing: 1px; box-shadow: 4px 4px 0 #0D0D0D; }
+    .footer { background: #0D0D0D; border: 2px solid #0D0D0D; border-top: none; padding: 14px 28px; }
+    .footer p { color: rgba(255,255,255,0.3); font-size: 11px; font-family: monospace; }
   </style>
 </head>
 <body>
-  <div class="container">
-    <div class="header">
-      <h1>⚡ Pesanan Baru Masuk!</h1>
-      <p>Synectra Admin Notification System</p>
-    </div>
-    <div class="body">
-      <span class="badge">New Order</span>
-
-      <div class="field">
-        <div class="field-label">Judul Pesanan</div>
-        <div class="field-value">${order.title}</div>
-      </div>
-
-      <div class="field">
-        <div class="field-label">Kategori Layanan</div>
-        <div class="field-value">${category}</div>
-      </div>
-
-      <div class="field">
-        <div class="field-label">Client</div>
-        <div class="field-value">${order.clientName ?? '—'}</div>
-        <div class="desc">${order.clientEmail ?? ''}</div>
-      </div>
-
-      <div class="field">
-        <div class="field-label">Detail Kebutuhan</div>
-        <div class="desc">${description}${order.description && order.description.length > 300 ? '...' : ''}</div>
-      </div>
-
-      <a href="${orderDetailUrl}" class="cta">Lihat Detail Pesanan →</a>
-    </div>
-    <div class="footer">
-      <p>Email ini dikirim otomatis oleh sistem Synectra. Jangan balas email ini.</p>
-    </div>
+<div class="wrap">
+  <div class="header">
+    <div class="header-title">⚡ Pesanan Baru Masuk</div>
+    <div class="header-sub">Synectra · Admin Notification</div>
   </div>
+  <div class="body">
+    <span class="badge">New Order</span>
+
+    <div class="field">
+      <div class="label">Judul Pesanan</div>
+      <div class="value">${order.title}</div>
+    </div>
+
+    <div class="field">
+      <div class="label">Kategori Layanan</div>
+      <div class="value">${category}</div>
+    </div>
+
+    <div class="field">
+      <div class="label">Client</div>
+      <div class="value">${order.clientName ?? '—'}</div>
+      ${order.clientEmail ? `<div class="sub">${order.clientEmail}</div>` : ''}
+    </div>
+
+    <div class="field">
+      <div class="label">Detail Kebutuhan</div>
+      <div class="sub">${description}${order.description && order.description.replace(/<[^>]*>/g, '').length > 400 ? '...' : ''}</div>
+    </div>
+
+    <a href="${orderDetailUrl}" class="cta">Lihat & Kelola Pesanan →</a>
+  </div>
+  <div class="footer">
+    <p>Email otomatis dari sistem Synectra · Jangan balas email ini</p>
+  </div>
+</div>
 </body>
 </html>`;
 
     try {
-      await this.transporter.sendMail({
-        from:    `"Synectra System" <${this.configService.get('MAIL_USER')}>`,
+      await this.resend.emails.send({
+        from:    'Synectra <onboarding@resend.dev>',
         to:      adminEmail,
         subject: `[Synectra] Pesanan Baru: ${order.title}`,
         html,
       });
-      this.logger.log(`Email notifikasi pesanan baru dikirim ke ${adminEmail}`);
+      this.logger.log(`Notifikasi pesanan baru dikirim ke ${adminEmail}`);
     } catch (error) {
       this.logger.error('Gagal mengirim email notifikasi', error);
     }

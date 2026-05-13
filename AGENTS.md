@@ -39,21 +39,28 @@ Berikut adalah daftar fitur dan arsitektur yang telah berhasil diimplementasikan
    - `JwtAuthGuard` untuk memproteksi protected routes
    - `GoogleAuthGuard` untuk memicu flow OAuth Google
 
-3. **Manajemen Portfolio (Portfolio Module)**
-   - Implementasi controller dan service untuk pengelolaan data portfolio (`portfolio.controller.ts`, `portfolio.service.ts`)
-   - Validasi payload pembuatan dan pembaruan data menggunakan DTO (`create-portfolio.dto.ts`, `update-portfolio.dto.ts`)
-   - Definisi tipe data standar pada `portfolio.types.ts`
+3. **Manajemen Konten & Tampilan (Portfolio & Banners Modules)**
+   - Implementasi CRUD operations untuk data Portfolio dan Banners.
+   - Validasi payload menggunakan DTO dan abstraksi model database.
 
-4. **Database & Data Modeling**
-   - Setup koneksi ke Supabase (PostgreSQL)
-   - Pembuatan `user.model.ts` untuk mengelola data user, termasuk login Google dan penyimpanan *password hash* untuk login kredensial
-   - Pembuatan `portfolio.model.ts` untuk abstraksi query CRUD data portfolio di database
+4. **Manajemen Pengguna & Klien (Client, Bank Accounts, Social Media, Contacts)**
+   - Pengelolaan entitas Client dan informasi terkaitnya.
+   - Relasi data dengan akun bank, media sosial, dan kontak klien.
 
-5. **Infrastruktur & Standar API**
-   - Dokumentasi API interaktif dengan **Swagger (OpenAPI 3.0)** (`/api/docs`)
-   - Standarisasi *success response* dengan `ResponseInterceptor`
-   - Standarisasi *error response* dengan `HttpExceptionFilter`
-   - Validasi payload global menggunakan `ValidationPipe` (`class-validator` & `class-transformer`)
+5. **Manajemen Pesanan & Layanan (Orders, Payments, Progress Reports, Mail)**
+   - Order management system terintegrasi dengan progress tracking dan pembayaran.
+   - Mail module terintegrasi untuk pengiriman notifikasi via email.
+
+6. **Database & Data Modeling**
+   - Setup koneksi ke Supabase (PostgreSQL).
+   - Pembuatan model untuk berbagai tabel (`user`, `portfolio`, `client`, `orders`, dll) untuk mengelola abstraksi dan relasi database.
+
+7. **Infrastruktur & Standar API**
+   - Dokumentasi API interaktif dengan **Swagger (OpenAPI 3.0)** (`/api/docs`).
+   - Standarisasi *success response* dengan `ResponseInterceptor`.
+   - Standarisasi *error response* dengan `HttpExceptionFilter`.
+   - Validasi payload global menggunakan `ValidationPipe` (`class-validator` & `class-transformer`).
+   - Konfigurasi environment server menggunakan Vercel.
 
 ---
 

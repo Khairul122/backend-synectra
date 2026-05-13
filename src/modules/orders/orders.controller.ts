@@ -70,4 +70,17 @@ export class OrdersController {
   updateDetails(@Param('id') id: string, @Body() dto: UpdateOrderDetailsDto) {
     return this.ordersService.updateDetails(id, dto);
   }
+
+  @Patch(':id/complete')
+  @UseGuards(JwtAuthGuard)
+  @ApiCookieAuth('access_token')
+  @ApiOperation({ summary: 'Selesaikan order oleh client (hanya pemilik order)' })
+  @ApiParam({ name: 'id', type: 'string' })
+  @ApiResponse({ status: 200, description: 'Order berhasil diselesaikan' })
+  @ApiResponse({ status: 403, description: 'Bukan pemilik order' })
+  @ApiResponse({ status: 400, description: 'Status order tidak memungkinkan untuk diselesaikan' })
+  completeOrder(@Param('id') id: string, @Req() req: Request) {
+    const user = req.user as AuthUser;
+    return this.ordersService.completeByClient(id, user.id, user.role);
+  }
 }
