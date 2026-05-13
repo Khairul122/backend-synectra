@@ -9,6 +9,7 @@ export const SUPABASE_TABLES = {
   ORDERS:            'orders',
   PAYMENTS:          'payments',
   PROGRESS_REPORTS:  'progress_reports',
+  SERVICE_PACKAGES:  'service_packages',
 };
 
 export const AUTH_MESSAGES = {
