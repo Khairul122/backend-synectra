@@ -10,6 +10,8 @@ export const SUPABASE_TABLES = {
   PAYMENTS:          'payments',
   PROGRESS_REPORTS:  'progress_reports',
   SERVICE_PACKAGES:  'service_packages',
+  SOFTWARE_PRODUCTS:  'software_products',
+  SOFTWARE_PURCHASES: 'software_purchases',
 };
 
 export const AUTH_MESSAGES = {

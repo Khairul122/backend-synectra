@@ -12,6 +12,8 @@ import { OrdersModule } from './modules/orders/orders.module';
 import { PaymentsModule } from './modules/payments/payments.module';
 import { ProgressReportsModule } from './modules/progress-reports/progress-reports.module';
 import { ServicePackagesModule } from './modules/service-packages/service-packages.module';
+import { SoftwareProductsModule } from './modules/software-products/software-products.module';
+import { SoftwarePurchasesModule } from './modules/software-purchases/software-purchases.module';
 import { ClientsModule } from './modules/clients/clients.module';
 import { UsersModule } from './modules/users/users.module';
 import supabaseConfig from './config/supabase.config';
@@ -34,6 +36,8 @@ import googleAuthConfig from './config/google-auth.config';
     PaymentsModule,
     ProgressReportsModule,
     ServicePackagesModule,
+    SoftwareProductsModule,
+    SoftwarePurchasesModule,
     ClientsModule,
     UsersModule,
   ],
