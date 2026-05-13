@@ -2,6 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { OrderModel } from '../../models/order.model';
 import { PaymentModel } from '../../models/payment.model';
 import { ProgressReportModel } from '../../models/progress-report.model';
+import { MailService } from '../mail/mail.service';
 import { Order } from '../../types/order.types';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { UpdateOrderStatusDto } from './dto/update-order-status.dto';
@@ -13,6 +14,7 @@ export class OrdersService {
     private readonly orderModel: OrderModel,
     private readonly paymentModel: PaymentModel,
     private readonly progressReportModel: ProgressReportModel,
+    private readonly mailService: MailService,
   ) {}
 
   findAll(): Promise<Order[]> {
@@ -33,8 +35,20 @@ export class OrdersService {
     return { ...order, payments, progressReports };
   }
 
-  create(dto: CreateOrderDto): Promise<Order> {
-    return this.orderModel.create(dto);
+  async create(dto: CreateOrderDto): Promise<Order> {
+    const order = await this.orderModel.create(dto);
+
+    // Kirim notifikasi email ke admin (non-blocking)
+    this.mailService.sendNewOrderNotification({
+      id:              order.id,
+      title:           order.title,
+      serviceCategory: order.serviceCategory,
+      description:     order.description,
+      clientName:      order.clientName ?? null,
+      clientEmail:     order.clientEmail ?? null,
+    }).catch(() => {}); // error email tidak memblokir response
+
+    return order;
   }
 
   async updateStatus(id: string, dto: UpdateOrderStatusDto): Promise<Order> {
