@@ -7,10 +7,20 @@ export class CreateSoftwareProductDto {
   @IsNotEmpty()
   name: string;
 
+  @ApiProperty({ example: 'POS Cashier System', required: false })
+  @IsString()
+  @IsOptional()
+  nameEn?: string;
+
   @ApiProperty({ example: 'Sistem kasir modern untuk toko dan UMKM', required: false })
   @IsString()
   @IsOptional()
   description?: string;
+
+  @ApiProperty({ example: 'Modern POS cashier system for shops and SMEs', required: false })
+  @IsString()
+  @IsOptional()
+  descriptionEn?: string;
 
   @ApiProperty({ example: 'Web App', required: false, enum: ['Web App', 'Mobile App', 'Desktop App', 'SaaS', 'Template', 'Script'] })
   @IsString()
@@ -41,6 +51,11 @@ export class CreateSoftwareProductDto {
   @IsString()
   @IsOptional()
   features?: string;
+
+  @ApiProperty({ example: 'Multi cashier\nDaily reports\nInventory management', required: false })
+  @IsString()
+  @IsOptional()
+  featuresEn?: string;
 
   @ApiProperty({ example: true, required: false, default: true })
   @IsBoolean()

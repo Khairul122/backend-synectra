@@ -7,10 +7,20 @@ export class CreateServicePackageDto {
   @IsNotEmpty()
   name: string;
 
+  @ApiProperty({ example: 'Starter Package', required: false })
+  @IsString()
+  @IsOptional()
+  nameEn?: string;
+
   @ApiProperty({ example: 'Paket terjangkau untuk kebutuhan dasar', required: false })
   @IsString()
   @IsOptional()
   description?: string;
+
+  @ApiProperty({ example: 'Affordable package for basic needs', required: false })
+  @IsString()
+  @IsOptional()
+  descriptionEn?: string;
 
   @ApiProperty({ example: 500000 })
   @IsNumber()
@@ -22,15 +32,30 @@ export class CreateServicePackageDto {
   @IsOptional()
   duration?: string;
 
+  @ApiProperty({ example: '2 Weeks', required: false })
+  @IsString()
+  @IsOptional()
+  durationEn?: string;
+
   @ApiProperty({ example: 'Desain responsif\nRevisi 2x\nSumber file', required: false, description: 'Satu fitur per baris' })
   @IsString()
   @IsOptional()
   features?: string;
 
+  @ApiProperty({ example: 'Responsive design\n2 revisions\nSource files included', required: false })
+  @IsString()
+  @IsOptional()
+  featuresEn?: string;
+
   @ApiProperty({ example: 'Paling Populer', required: false })
   @IsString()
   @IsOptional()
   badge?: string;
+
+  @ApiProperty({ example: 'Most Popular', required: false })
+  @IsString()
+  @IsOptional()
+  badgeEn?: string;
 
   @ApiProperty({ example: 'https://storage.supabase.co/...', required: false })
   @IsString()

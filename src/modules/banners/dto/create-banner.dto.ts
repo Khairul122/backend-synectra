@@ -7,10 +7,20 @@ export class CreateBannerDto {
   @IsNotEmpty()
   title: string;
 
+  @ApiProperty({ example: 'Eid Sale Banner', required: false, description: 'Judul dalam Bahasa Inggris' })
+  @IsString()
+  @IsOptional()
+  titleEn?: string;
+
   @ApiProperty({ example: '<p>Deskripsi banner dalam format HTML</p>', required: false })
   @IsString()
   @IsOptional()
   description?: string;
+
+  @ApiProperty({ example: '<p>Banner description in HTML</p>', required: false })
+  @IsString()
+  @IsOptional()
+  descriptionEn?: string;
 
   @ApiProperty({ example: 'https://example.com/banner.jpg', required: false })
   @IsString()
