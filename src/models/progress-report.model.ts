@@ -4,7 +4,7 @@ import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import { SUPABASE_TABLES } from '../constants';
 import { ProgressReport } from '../types/progress-report.types';
 
-const SELECT = 'id, order_id, title, description, progress_percentage, attachment_url, reported_at';
+const SELECT = 'id, order_id, title, description, progress_percentage, attachment_url, reported_at, is_locked';
 
 @Injectable()
 export class ProgressReportModel {
@@ -35,11 +35,21 @@ export class ProgressReportModel {
         description:         payload.description ?? null,
         progress_percentage: payload.progressPercentage ?? 0,
         attachment_url:      payload.attachmentUrl ?? null,
+        is_locked:           payload.isLocked ?? false,
       }])
       .select(SELECT)
       .single();
     if (error) throw error;
     return this.map(data);
+  }
+
+  async unlockByOrder(orderId: string): Promise<void> {
+    const { error } = await this.supabase
+      .from(SUPABASE_TABLES.PROGRESS_REPORTS)
+      .update({ is_locked: false })
+      .eq('order_id', orderId)
+      .eq('is_locked', true);
+    if (error) throw error;
   }
 
   private map(row: Record<string, unknown>): ProgressReport {
@@ -51,6 +61,7 @@ export class ProgressReportModel {
       progressPercentage: row.progress_percentage as number,
       attachmentUrl:      row.attachment_url as string | null,
       reportedAt:         row.reported_at as string,
+      isLocked:           row.is_locked as boolean,
     };
   }
 }

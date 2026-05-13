@@ -6,4 +6,5 @@ export interface ProgressReport {
   progressPercentage: number;
   attachmentUrl: string | null;
   reportedAt: string;
+  isLocked: boolean;
 }

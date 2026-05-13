@@ -14,4 +14,8 @@ export class ProgressReportsService {
   findByOrder(orderId: string): Promise<ProgressReport[]> {
     return this.progressReportModel.findByOrder(orderId);
   }
+
+  unlockByOrder(orderId: string): Promise<void> {
+    return this.progressReportModel.unlockByOrder(orderId);
+  }
 }

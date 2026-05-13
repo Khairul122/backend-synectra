@@ -6,5 +6,6 @@ import { ProgressReportModel } from '../../models/progress-report.model';
 @Module({
   controllers: [ProgressReportsController],
   providers: [ProgressReportsService, ProgressReportModel],
+  exports: [ProgressReportModel],
 })
 export class ProgressReportsModule {}

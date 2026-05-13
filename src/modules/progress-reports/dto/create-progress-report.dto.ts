@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsInt, IsNotEmpty, IsOptional, IsString, IsUUID, Max, Min } from 'class-validator';
+import { IsBoolean, IsInt, IsNotEmpty, IsOptional, IsString, IsUUID, Max, Min } from 'class-validator';
 
 export class CreateProgressReportDto {
   @ApiProperty({ example: 'uuid-order-id' })
@@ -27,4 +27,9 @@ export class CreateProgressReportDto {
   @IsString()
   @IsOptional()
   attachmentUrl?: string;
+
+  @ApiProperty({ example: false, required: false, description: 'Kunci detail dari client sampai payment diverifikasi' })
+  @IsBoolean()
+  @IsOptional()
+  isLocked?: boolean;
 }
