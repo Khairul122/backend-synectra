@@ -13,7 +13,7 @@ const SELECT = `
 
 const SELECT_SIMPLE = `
   id, client_id, software_id, software_name, software_price,
-  quantity, total_price, receipt_image_url, payment_status,
+  quantity, total_price, receipt_image_url, softcopy_url, payment_status,
   notes, verified_at, created_at, updated_at
 `.trim();
 
@@ -88,11 +88,12 @@ export class SoftwarePurchaseModel {
     return data ? this.map(data as any) : null;
   }
 
-  async verify(id: string): Promise<SoftwarePurchase | null> {
+  async verify(id: string, softcopyUrl: string | null): Promise<SoftwarePurchase | null> {
     const { data, error } = await this.supabase
       .from(SUPABASE_TABLES.SOFTWARE_PURCHASES)
       .update({
         payment_status: 'verified',
+        softcopy_url:   softcopyUrl,
         verified_at:    new Date().toISOString(),
         updated_at:     new Date().toISOString(),
       })
@@ -131,6 +132,7 @@ export class SoftwarePurchaseModel {
       quantity:         row.quantity       as number,
       totalPrice:       row.total_price    as number,
       receiptImageUrl:  row.receipt_image_url as string | null,
+      softcopyUrl:      row.softcopy_url      as string | null,
       paymentStatus:    row.payment_status    as any,
       notes:            row.notes            as string | null,
       verifiedAt:       row.verified_at      as string | null,

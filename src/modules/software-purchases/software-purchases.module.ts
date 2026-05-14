@@ -3,9 +3,10 @@ import { SoftwarePurchasesController } from './software-purchases.controller';
 import { SoftwarePurchasesService } from './software-purchases.service';
 import { SoftwarePurchaseModel } from '../../models/software-purchase.model';
 import { SoftwareProductsModule } from '../software-products/software-products.module';
+import { MailModule } from '../mail/mail.module';
 
 @Module({
-  imports: [SoftwareProductsModule],
+  imports: [SoftwareProductsModule, MailModule],
   controllers: [SoftwarePurchasesController],
   providers: [SoftwarePurchasesService, SoftwarePurchaseModel],
 })

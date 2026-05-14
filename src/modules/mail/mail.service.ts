@@ -115,4 +115,90 @@ export class MailService {
       this.logger.error('Gagal mengirim email notifikasi', error);
     }
   }
+
+  async sendSoftcopyEmail(payload: {
+    clientName: string;
+    clientEmail: string;
+    softwareName: string;
+    softcopyUrl: string | null;
+  }): Promise<void> {
+    if (!this.resend) {
+      this.logger.warn('RESEND_API_KEY belum dikonfigurasi, softcopy email tidak dikirim.');
+      return;
+    }
+
+    const downloadSection = payload.softcopyUrl
+      ? `<a href="${payload.softcopyUrl}" class="cta">Download Softcopy →</a>`
+      : `<p class="sub" style="color:#FF5C5C;">Link download sedang dipersiapkan. Admin akan menghubungi Anda segera.</p>`;
+
+    const html = `<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Segoe UI', Arial, sans-serif; background: #F5F0E8; padding: 24px; }
+    .wrap { max-width: 560px; margin: 0 auto; }
+    .header { background: #0D0D0D; padding: 24px 28px; border: 2px solid #0D0D0D; }
+    .header-title { color: #00C48C; font-size: 20px; font-weight: 800; letter-spacing: 1px; text-transform: uppercase; }
+    .header-sub { color: rgba(255,255,255,0.4); font-size: 11px; margin-top: 4px; font-family: monospace; }
+    .body { background: #ffffff; border: 2px solid #0D0D0D; border-top: none; padding: 28px; }
+    .badge { display: inline-block; background: #00C48C; color: #ffffff; font-size: 10px; font-weight: 800; font-family: monospace; text-transform: uppercase; padding: 4px 10px; border: 2px solid #0D0D0D; margin-bottom: 20px; }
+    .field { margin-bottom: 16px; padding-bottom: 16px; border-bottom: 1px solid #F0EBE3; }
+    .field:last-of-type { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+    .label { font-size: 10px; font-family: monospace; text-transform: uppercase; color: rgba(13,13,13,0.5); letter-spacing: 1px; margin-bottom: 4px; }
+    .value { font-size: 15px; font-weight: 700; color: #0D0D0D; }
+    .sub { font-size: 13px; color: rgba(13,13,13,0.6); line-height: 1.6; margin-top: 4px; }
+    .cta { display: block; margin-top: 24px; padding: 14px 20px; background: #00C48C; border: 2px solid #0D0D0D; color: #ffffff; font-weight: 800; font-size: 13px; text-decoration: none; text-align: center; text-transform: uppercase; letter-spacing: 1px; box-shadow: 4px 4px 0 #0D0D0D; }
+    .footer { background: #0D0D0D; border: 2px solid #0D0D0D; border-top: none; padding: 14px 28px; }
+    .footer p { color: rgba(255,255,255,0.3); font-size: 11px; font-family: monospace; }
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <div class="header">
+    <div class="header-title">✅ Pembayaran Terverifikasi</div>
+    <div class="header-sub">Synectra · Software Purchase</div>
+  </div>
+  <div class="body">
+    <span class="badge">Verified</span>
+
+    <div class="field">
+      <div class="label">Halo</div>
+      <div class="value">${payload.clientName}</div>
+    </div>
+
+    <div class="field">
+      <div class="label">Software yang Dibeli</div>
+      <div class="value">${payload.softwareName}</div>
+    </div>
+
+    <div class="field">
+      <div class="label">Status Pembayaran</div>
+      <div class="value" style="color:#00C48C;">Terverifikasi ✓</div>
+      <div class="sub">Pembayaran Anda telah dikonfirmasi. Silakan unduh softcopy di bawah ini.</div>
+    </div>
+
+    ${downloadSection}
+  </div>
+  <div class="footer">
+    <p>Email otomatis dari sistem Synectra · Jangan balas email ini</p>
+  </div>
+</div>
+</body>
+</html>`;
+
+    try {
+      await this.resend.emails.send({
+        from:    'Synectra <onboarding@resend.dev>',
+        to:      payload.clientEmail,
+        subject: `[Synectra] Softcopy Tersedia — ${payload.softwareName}`,
+        html,
+      });
+      this.logger.log(`Softcopy email dikirim ke ${payload.clientEmail}`);
+    } catch (error) {
+      this.logger.error('Gagal mengirim softcopy email', error);
+    }
+  }
 }

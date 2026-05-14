@@ -4,7 +4,7 @@ import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import { SUPABASE_TABLES } from '../constants';
 import { SoftwareProduct } from '../types/software-product.types';
 
-const SELECT = 'id, name, name_en, description, description_en, category, price, demo_url, thumbnail_url, tech_stack, features, features_en, is_active, sort_order, created_at, updated_at';
+const SELECT = 'id, name, name_en, description, description_en, category, price, demo_url, thumbnail_url, tech_stack, features, features_en, softcopy_url, is_active, sort_order, created_at, updated_at';
 
 @Injectable()
 export class SoftwareProductModel {
@@ -62,7 +62,8 @@ export class SoftwareProductModel {
         tech_stack:     payload.techStack     ?? null,
         features:       payload.features      ?? null,
         features_en:    payload.featuresEn    ?? null,
-        is_active:      payload.isActive      ?? true,
+        softcopy_url:   payload.softcopyUrl    ?? null,
+        is_active:      payload.isActive       ?? true,
         sort_order:     payload.sortOrder      ?? 0,
       }])
       .select(SELECT)
@@ -86,6 +87,7 @@ export class SoftwareProductModel {
         ...(payload.techStack     !== undefined && { tech_stack:     payload.techStack }),
         ...(payload.features      !== undefined && { features:       payload.features }),
         ...(payload.featuresEn    !== undefined && { features_en:    payload.featuresEn }),
+        ...(payload.softcopyUrl   !== undefined && { softcopy_url:   payload.softcopyUrl }),
         ...(payload.isActive      !== undefined && { is_active:      payload.isActive }),
         ...(payload.sortOrder     !== undefined && { sort_order:     payload.sortOrder }),
         updated_at: new Date().toISOString(),
@@ -119,6 +121,7 @@ export class SoftwareProductModel {
       techStack:     row.tech_stack    as string | null,
       features:      row.features      as string | null,
       featuresEn:    row.features_en   as string | null,
+      softcopyUrl:   row.softcopy_url  as string | null,
       isActive:      row.is_active     as boolean,
       sortOrder:     row.sort_order    as number,
       createdAt:     row.created_at    as string,

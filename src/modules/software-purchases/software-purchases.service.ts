@@ -1,6 +1,7 @@
 import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { SoftwarePurchaseModel } from '../../models/software-purchase.model';
 import { SoftwareProductModel } from '../../models/software-product.model';
+import { MailService } from '../mail/mail.service';
 import { SoftwarePurchase } from '../../types/software-purchase.types';
 import { CreateSoftwarePurchaseDto } from './dto/create-software-purchase.dto';
 import { UploadReceiptDto } from './dto/upload-receipt.dto';
@@ -11,6 +12,7 @@ export class SoftwarePurchasesService {
   constructor(
     private readonly softwarePurchaseModel: SoftwarePurchaseModel,
     private readonly softwareProductModel: SoftwareProductModel,
+    private readonly mailService: MailService,
   ) {}
 
   findAll(): Promise<SoftwarePurchase[]> {
@@ -57,9 +59,22 @@ export class SoftwarePurchasesService {
   }
 
   async verify(id: string): Promise<SoftwarePurchase> {
-    await this.findById(id);
-    const verified = await this.softwarePurchaseModel.verify(id);
+    const purchase = await this.findById(id);
+    const product  = await this.softwareProductModel.findById(purchase.softwareId);
+    const softcopyUrl = product?.softcopyUrl ?? null;
+
+    const verified = await this.softwarePurchaseModel.verify(id, softcopyUrl);
     if (!verified) throw new NotFoundException(`Pembelian dengan id ${id} tidak ditemukan`);
+
+    if (purchase.clientEmail) {
+      this.mailService.sendSoftcopyEmail({
+        clientName:   purchase.clientName  ?? purchase.clientEmail,
+        clientEmail:  purchase.clientEmail,
+        softwareName: purchase.softwareName,
+        softcopyUrl,
+      });
+    }
+
     return verified;
   }
 

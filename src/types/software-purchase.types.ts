@@ -11,6 +11,7 @@ export interface SoftwarePurchase {
   quantity: number;
   totalPrice: number;
   receiptImageUrl: string | null;
+  softcopyUrl: string | null;
   paymentStatus: SoftwarePurchaseStatus;
   notes: string | null;
   verifiedAt: string | null;

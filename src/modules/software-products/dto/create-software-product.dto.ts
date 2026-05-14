@@ -57,6 +57,11 @@ export class CreateSoftwareProductDto {
   @IsOptional()
   featuresEn?: string;
 
+  @ApiProperty({ example: 'https://drive.google.com/file/d/...', required: false, description: 'Link download softcopy untuk client setelah verifikasi pembayaran' })
+  @IsString()
+  @IsOptional()
+  softcopyUrl?: string;
+
   @ApiProperty({ example: true, required: false, default: true })
   @IsBoolean()
   @IsOptional()

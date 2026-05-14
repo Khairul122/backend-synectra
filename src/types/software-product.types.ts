@@ -11,6 +11,7 @@ export interface SoftwareProduct {
   techStack: string | null;
   features: string | null;
   featuresEn: string | null;
+  softcopyUrl: string | null;
   isActive: boolean;
   sortOrder: number;
   createdAt: string;
