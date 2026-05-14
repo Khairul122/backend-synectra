@@ -11,7 +11,7 @@ export interface Order {
   totalPrice: number | null;
   deadline: string | null;
   status: OrderStatus;
-  revisionNotes: string | null;
+  revisionData: Array<{ notes: string; images: string[] }> | null;
   createdAt: string;
   updatedAt: string;
 }

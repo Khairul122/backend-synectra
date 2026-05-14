@@ -73,7 +73,7 @@ export class OrdersService {
     if (order.status !== 'testing') {
       throw new BadRequestException(`Permintaan revisi hanya bisa dilakukan saat status order adalah "testing"`);
     }
-    const updated = await this.orderModel.requestRevision(id, dto.notes);
+    const updated = await this.orderModel.requestRevision(id, dto.items.map(i => ({ notes: i.notes, images: i.images ?? [] })));
     return updated!;
   }
 
