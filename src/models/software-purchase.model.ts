@@ -8,7 +8,7 @@ const SELECT = `
   id, client_id, software_id, software_name, software_price,
   quantity, total_price, receipt_image_url, payment_status,
   notes, verified_at, created_at, updated_at,
-  users:client_id ( full_name, email )
+  users!client_id ( full_name, email )
 `.trim();
 
 const SELECT_SIMPLE = `
