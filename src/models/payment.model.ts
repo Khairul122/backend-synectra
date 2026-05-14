@@ -4,7 +4,7 @@ import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import { SUPABASE_TABLES } from '../constants';
 import { Payment } from '../types/payment.types';
 
-const SELECT = 'id, order_id, payment_type, amount, receipt_image_url, status, notes, verified_at, created_at';
+const SELECT = 'id, order_id, payment_type, amount, receipt_image_url, payment_number, status, notes, verified_at, created_at';
 
 @Injectable()
 export class PaymentModel {
@@ -44,6 +44,7 @@ export class PaymentModel {
         payment_type:     payload.paymentType,
         amount:           payload.amount,
         receipt_image_url: payload.receiptImageUrl,
+        payment_number:   payload.paymentNumber ?? null,
         status:           'pending_verification',
       }])
       .select(SELECT)
@@ -81,6 +82,7 @@ export class PaymentModel {
       paymentType:     row.payment_type as string,
       amount:          row.amount as number,
       receiptImageUrl: row.receipt_image_url as string,
+      paymentNumber:   row.payment_number as string | null,
       status:          row.status as any,
       notes:           row.notes as string | null,
       verifiedAt:      row.verified_at as string | null,

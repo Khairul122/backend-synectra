@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsNotEmpty, IsNumber, IsString, IsUUID } from 'class-validator';
+import { IsNotEmpty, IsNumber, IsOptional, IsString, IsUUID } from 'class-validator';
 
 export class CreatePaymentDto {
   @ApiProperty({ example: 'uuid-order-id' })
@@ -21,4 +21,9 @@ export class CreatePaymentDto {
   @IsString()
   @IsNotEmpty()
   receiptImageUrl: string;
+
+  @ApiProperty({ example: 'TRF-20240514-001', required: false, description: 'Nomor referensi transfer dari bank' })
+  @IsString()
+  @IsOptional()
+  paymentNumber?: string;
 }

@@ -7,6 +7,7 @@ export interface Payment {
   paymentType: string;
   amount: number;
   receiptImageUrl: string;
+  paymentNumber: string | null;
   status: PaymentStatus;
   notes: string | null;
   verifiedAt: string | null;
