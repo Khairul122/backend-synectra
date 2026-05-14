@@ -7,6 +7,7 @@ import { Order } from '../../types/order.types';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { UpdateOrderStatusDto } from './dto/update-order-status.dto';
 import { UpdateOrderDetailsDto } from './dto/update-order-details.dto';
+import { RequestRevisionDto } from './dto/request-revision.dto';
 
 @Injectable()
 export class OrdersService {
@@ -62,6 +63,17 @@ export class OrdersService {
     const order = await this.orderModel.findById(id);
     if (!order) throw new NotFoundException(`Order dengan id ${id} tidak ditemukan`);
     const updated = await this.orderModel.updateDetails(id, dto);
+    return updated!;
+  }
+
+  async requestRevision(id: string, userId: string, dto: RequestRevisionDto): Promise<Order> {
+    const order = await this.orderModel.findById(id);
+    if (!order) throw new NotFoundException(`Order dengan id ${id} tidak ditemukan`);
+    if (order.clientId !== userId) throw new ForbiddenException('Anda tidak memiliki akses ke order ini');
+    if (order.status !== 'testing') {
+      throw new BadRequestException(`Permintaan revisi hanya bisa dilakukan saat status order adalah "testing"`);
+    }
+    const updated = await this.orderModel.requestRevision(id, dto.notes);
     return updated!;
   }
 

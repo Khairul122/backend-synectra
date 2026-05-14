@@ -4,6 +4,7 @@ import { OrdersService } from './orders.service';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { UpdateOrderStatusDto } from './dto/update-order-status.dto';
 import { UpdateOrderDetailsDto } from './dto/update-order-details.dto';
+import { RequestRevisionDto } from './dto/request-revision.dto';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { AdminGuard } from '../../common/guards/admin.guard';
 import type { Request } from 'express';
@@ -69,6 +70,19 @@ export class OrdersController {
   @ApiResponse({ status: 200, description: 'Detail order berhasil diupdate' })
   updateDetails(@Param('id') id: string, @Body() dto: UpdateOrderDetailsDto) {
     return this.ordersService.updateDetails(id, dto);
+  }
+
+  @Patch(':id/request-revision')
+  @UseGuards(JwtAuthGuard)
+  @ApiCookieAuth('access_token')
+  @ApiOperation({ summary: 'Minta revisi order oleh client (hanya saat status testing)' })
+  @ApiParam({ name: 'id', type: 'string' })
+  @ApiResponse({ status: 200, description: 'Permintaan revisi berhasil dikirim' })
+  @ApiResponse({ status: 400, description: 'Status order bukan testing' })
+  @ApiResponse({ status: 403, description: 'Bukan pemilik order' })
+  requestRevision(@Param('id') id: string, @Body() dto: RequestRevisionDto, @Req() req: Request) {
+    const user = req.user as AuthUser;
+    return this.ordersService.requestRevision(id, user.id, dto);
   }
 
   @Patch(':id/complete')

@@ -6,7 +6,7 @@ import { Order } from '../types/order.types';
 
 const SELECT = `
   id, client_id, title, service_category, description,
-  total_price, deadline, status, created_at, updated_at,
+  total_price, deadline, status, revision_notes, created_at, updated_at,
   users!client_id ( full_name, email )
 `.trim();
 
@@ -107,8 +107,24 @@ export class OrderModel {
       totalPrice:      row.total_price,
       deadline:        row.deadline,
       status:          row.status,
+      revisionNotes:   row.revision_notes ?? null,
       createdAt:       row.created_at,
       updatedAt:       row.updated_at,
     };
+  }
+
+  async requestRevision(id: string, notes: string): Promise<Order | null> {
+    const { data, error } = await this.supabase
+      .from(SUPABASE_TABLES.ORDERS)
+      .update({
+        status:         'revision',
+        revision_notes: notes,
+        updated_at:     new Date().toISOString(),
+      })
+      .eq('id', id)
+      .select(SELECT)
+      .single();
+    if (error && error.code !== 'PGRST116') throw error;
+    return data ? this.map(data) : null;
   }
 }
