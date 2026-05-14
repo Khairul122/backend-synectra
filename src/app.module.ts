@@ -16,6 +16,7 @@ import { SoftwareProductsModule } from './modules/software-products/software-pro
 import { SoftwarePurchasesModule } from './modules/software-purchases/software-purchases.module';
 import { ClientsModule } from './modules/clients/clients.module';
 import { UsersModule } from './modules/users/users.module';
+import { FeedbacksModule } from './modules/feedbacks/feedbacks.module';
 import supabaseConfig from './config/supabase.config';
 import jwtConfig from './config/jwt.config';
 import googleAuthConfig from './config/google-auth.config';
@@ -40,6 +41,7 @@ import googleAuthConfig from './config/google-auth.config';
     SoftwarePurchasesModule,
     ClientsModule,
     UsersModule,
+    FeedbacksModule,
   ],
   controllers: [AppController],
   providers: [AppService],

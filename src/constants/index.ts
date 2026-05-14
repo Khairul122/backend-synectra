@@ -13,6 +13,7 @@ export const SUPABASE_TABLES = {
   SOFTWARE_PRODUCTS:  'software_products',
   SOFTWARE_PURCHASES: 'software_purchases',
   ORDER_REVISIONS:    'order_revisions',
+  FEEDBACKS:          'feedbacks',
 };
 
 export const AUTH_MESSAGES = {
