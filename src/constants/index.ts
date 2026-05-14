@@ -12,6 +12,7 @@ export const SUPABASE_TABLES = {
   SERVICE_PACKAGES:  'service_packages',
   SOFTWARE_PRODUCTS:  'software_products',
   SOFTWARE_PURCHASES: 'software_purchases',
+  ORDER_REVISIONS:    'order_revisions',
 };
 
 export const AUTH_MESSAGES = {

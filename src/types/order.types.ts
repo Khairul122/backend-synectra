@@ -11,7 +11,13 @@ export interface Order {
   totalPrice: number | null;
   deadline: string | null;
   status: OrderStatus;
-  revisionData: Array<{ notes: string; images: string[] }> | null;
   createdAt: string;
   updatedAt: string;
+}
+
+export interface OrderRevision {
+  id: string;
+  orderId: string;
+  items: Array<{ notes: string; images: string[] }>;
+  createdAt: string;
 }

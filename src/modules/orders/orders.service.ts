@@ -1,5 +1,6 @@
 import { Injectable, NotFoundException, ForbiddenException, BadRequestException } from '@nestjs/common';
 import { OrderModel } from '../../models/order.model';
+import { OrderRevisionModel } from '../../models/order-revision.model';
 import { PaymentModel } from '../../models/payment.model';
 import { ProgressReportModel } from '../../models/progress-report.model';
 import { MailService } from '../mail/mail.service';
@@ -13,6 +14,7 @@ import { RequestRevisionDto } from './dto/request-revision.dto';
 export class OrdersService {
   constructor(
     private readonly orderModel: OrderModel,
+    private readonly orderRevisionModel: OrderRevisionModel,
     private readonly paymentModel: PaymentModel,
     private readonly progressReportModel: ProgressReportModel,
     private readonly mailService: MailService,
@@ -29,11 +31,12 @@ export class OrdersService {
   async findDetail(id: string) {
     const order = await this.orderModel.findById(id);
     if (!order) throw new NotFoundException(`Order dengan id ${id} tidak ditemukan`);
-    const [payments, progressReports] = await Promise.all([
+    const [payments, progressReports, revisions] = await Promise.all([
       this.paymentModel.findByOrder(id),
       this.progressReportModel.findByOrder(id),
+      this.orderRevisionModel.findByOrder(id),
     ]);
-    return { ...order, payments, progressReports };
+    return { ...order, payments, progressReports, revisions };
   }
 
   async create(dto: CreateOrderDto): Promise<Order> {
@@ -73,7 +76,9 @@ export class OrdersService {
     if (order.status !== 'testing') {
       throw new BadRequestException(`Permintaan revisi hanya bisa dilakukan saat status order adalah "testing"`);
     }
-    const updated = await this.orderModel.requestRevision(id, dto.items.map(i => ({ notes: i.notes, images: i.images ?? [] })));
+    const items = dto.items.map(i => ({ notes: i.notes, images: i.images ?? [] }));
+    await this.orderRevisionModel.create(id, items);
+    const updated = await this.orderModel.updateStatus(id, 'revision');
     return updated!;
   }
 
