@@ -6,10 +6,9 @@ import { OrderRevisionModel } from '../../models/order-revision.model';
 import { PaymentModel } from '../../models/payment.model';
 import { ProgressReportModel } from '../../models/progress-report.model';
 import { MailModule } from '../mail/mail.module';
-import { WhatsappModule } from '../whatsapp/whatsapp.module';
 
 @Module({
-  imports:     [MailModule, WhatsappModule],
+  imports:     [MailModule],
   controllers: [OrdersController],
   providers:   [OrdersService, OrderModel, OrderRevisionModel, PaymentModel, ProgressReportModel],
 })

@@ -4,10 +4,10 @@ import { PaymentsService } from './payments.service';
 import { PaymentModel } from '../../models/payment.model';
 import { OrderModel } from '../../models/order.model';
 import { ProgressReportsModule } from '../progress-reports/progress-reports.module';
-import { WhatsappModule } from '../whatsapp/whatsapp.module';
+import { MailModule } from '../mail/mail.module';
 
 @Module({
-  imports: [ProgressReportsModule, WhatsappModule],
+  imports: [ProgressReportsModule, MailModule],
   controllers: [PaymentsController],
   providers: [PaymentsService, PaymentModel, OrderModel],
 })

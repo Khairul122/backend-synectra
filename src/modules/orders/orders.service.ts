@@ -4,7 +4,6 @@ import { OrderRevisionModel } from '../../models/order-revision.model';
 import { PaymentModel } from '../../models/payment.model';
 import { ProgressReportModel } from '../../models/progress-report.model';
 import { MailService } from '../mail/mail.service';
-import { WhatsappService } from '../whatsapp/whatsapp.service';
 import { Order } from '../../types/order.types';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { UpdateOrderStatusDto } from './dto/update-order-status.dto';
@@ -19,7 +18,6 @@ export class OrdersService {
     private readonly paymentModel: PaymentModel,
     private readonly progressReportModel: ProgressReportModel,
     private readonly mailService: MailService,
-    private readonly waService: WhatsappService,
   ) {}
 
   findAll(): Promise<Order[]> {
@@ -44,16 +42,7 @@ export class OrdersService {
   async create(dto: CreateOrderDto): Promise<Order> {
     const order = await this.orderModel.create(dto);
 
-    // Kirim notifikasi WA ke admin (non-blocking)
-    this.waService.notifyAdminNewOrder({
-      title:           order.title,
-      clientName:      order.clientName ?? null,
-      clientEmail:     order.clientEmail ?? null,
-      phone:           order.phone ?? null,
-      serviceCategory: order.serviceCategory ?? null,
-    });
-
-    // Kirim notifikasi email ke admin (non-blocking)
+    // Notifikasi email ke admin (non-blocking)
     this.mailService.sendNewOrderNotification({
       id:              order.id,
       title:           order.title,
@@ -61,7 +50,16 @@ export class OrdersService {
       description:     order.description,
       clientName:      order.clientName ?? null,
       clientEmail:     order.clientEmail ?? null,
-    }).catch(() => {}); // error email tidak memblokir response
+    }).catch(() => {});
+
+    // Konfirmasi email ke client (non-blocking)
+    if (order.clientEmail) {
+      this.mailService.sendNewOrderToClient(order.clientEmail, {
+        orderId:    order.id,
+        title:      order.title,
+        clientName: order.clientName ?? null,
+      }).catch(() => {});
+    }
 
     return order;
   }
@@ -76,9 +74,14 @@ export class OrdersService {
     const order = await this.orderModel.findById(id);
     if (!order) throw new NotFoundException(`Order dengan id ${id} tidak ditemukan`);
     const updated = await this.orderModel.updateStatus(id, dto.status);
-    // Notifikasi WA ke client jika order punya nomor HP (non-blocking)
-    if (order.phone) {
-      this.waService.notifyClientStatusChange(order.phone, { title: order.title, status: dto.status });
+    // Notifikasi email ke client jika ada email (non-blocking)
+    if (order.clientEmail) {
+      this.mailService.sendOrderStatusUpdate(order.clientEmail, {
+        orderId:    id,
+        title:      order.title,
+        status:     dto.status,
+        clientName: order.clientName ?? null,
+      }).catch(() => {});
     }
     return updated!;
   }
@@ -100,7 +103,14 @@ export class OrdersService {
     const items = dto.items.map(i => ({ notes: i.notes, images: i.images ?? [] }));
     await this.orderRevisionModel.create(id, items);
     const updated = await this.orderModel.updateStatus(id, 'revision');
-    return updated!;
+    // Notifikasi email ke admin (non-blocking)
+    this.mailService.sendRevisionToAdmin({
+      orderId:    id,
+      title:      order.title,
+      itemCount:  items.length,
+      clientName: order.clientName ?? null,
+    }).catch(() => {});
+    return updated!
   }
 
   async completeByClient(id: string, userId: string, userRole: string): Promise<Order> {

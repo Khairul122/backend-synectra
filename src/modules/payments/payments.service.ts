@@ -5,7 +5,7 @@ import { ProgressReportModel } from '../../models/progress-report.model';
 import { Payment } from '../../types/payment.types';
 import { CreatePaymentDto } from './dto/create-payment.dto';
 import { RejectPaymentDto } from './dto/reject-payment.dto';
-import { WhatsappService } from '../whatsapp/whatsapp.service';
+import { MailService } from '../mail/mail.service';
 
 @Injectable()
 export class PaymentsService {
@@ -13,7 +13,7 @@ export class PaymentsService {
     private readonly paymentModel: PaymentModel,
     private readonly orderModel: OrderModel,
     private readonly progressReportModel: ProgressReportModel,
-    private readonly waService: WhatsappService,
+    private readonly mailService: MailService,
   ) {}
 
   async getIncome(view: string, year?: number, month?: number) {
@@ -61,8 +61,20 @@ export class PaymentsService {
     return { view, summary, points };
   }
 
-  create(dto: CreatePaymentDto): Promise<Payment> {
-    return this.paymentModel.create(dto);
+  async create(dto: CreatePaymentDto): Promise<Payment> {
+    const payment = await this.paymentModel.create(dto);
+    // Notifikasi email ke admin (non-blocking)
+    const order = await this.orderModel.findById(dto.orderId);
+    if (order) {
+      this.mailService.sendPaymentSubmittedToAdmin({
+        orderId:     order.id,
+        orderTitle:  order.title,
+        amount:      dto.amount,
+        paymentType: dto.paymentType,
+        clientName:  order.clientName ?? null,
+      }).catch(() => {});
+    }
+    return payment;
   }
 
   async verify(id: string): Promise<Payment> {
@@ -70,10 +82,15 @@ export class PaymentsService {
     if (!payment) throw new NotFoundException(`Payment dengan id ${id} tidak ditemukan`);
     const verified = await this.paymentModel.verify(id) as Payment;
     await this.progressReportModel.unlockByOrder(verified.orderId);
-    // Notifikasi WA ke client (non-blocking)
+    // Notifikasi email ke client (non-blocking)
     const order = await this.orderModel.findById(verified.orderId);
-    if (order?.phone) {
-      this.waService.notifyClientPaymentVerified(order.phone, { title: order.title, amount: verified.amount });
+    if (order?.clientEmail) {
+      this.mailService.sendPaymentVerified(order.clientEmail, {
+        orderId:    order.id,
+        orderTitle: order.title,
+        amount:     verified.amount,
+        clientName: order.clientName ?? null,
+      }).catch(() => {});
     }
     return verified;
   }
@@ -82,10 +99,15 @@ export class PaymentsService {
     const payment = await this.paymentModel.findById(id);
     if (!payment) throw new NotFoundException(`Payment dengan id ${id} tidak ditemukan`);
     const rejected = await this.paymentModel.reject(id, dto.notes) as Payment;
-    // Notifikasi WA ke client (non-blocking)
+    // Notifikasi email ke client (non-blocking)
     const order = await this.orderModel.findById(rejected.orderId);
-    if (order?.phone) {
-      this.waService.notifyClientPaymentRejected(order.phone, { title: order.title, notes: dto.notes });
+    if (order?.clientEmail) {
+      this.mailService.sendPaymentRejected(order.clientEmail, {
+        orderId:    order.id,
+        orderTitle: order.title,
+        notes:      dto.notes,
+        clientName: order.clientName ?? null,
+      }).catch(() => {});
     }
     return rejected;
   }

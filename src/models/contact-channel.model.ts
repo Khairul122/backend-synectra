@@ -16,6 +16,16 @@ export class ContactChannelModel {
     this.supabase = createClient(url, key);
   }
 
+  async findEmailContacts(): Promise<string[]> {
+    const { data, error } = await this.supabase
+      .from(SUPABASE_TABLES.CONTACT_CHANNELS)
+      .select('contact_info')
+      .like('contact_info', '%@%')
+      .eq('is_active', true);
+    if (error) return [];
+    return (data ?? []).map(r => r.contact_info as string).filter(Boolean);
+  }
+
   async findAll(): Promise<ContactChannel[]> {
     const { data, error } = await this.supabase
       .from(SUPABASE_TABLES.CONTACT_CHANNELS)
