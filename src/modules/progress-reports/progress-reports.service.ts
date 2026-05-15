@@ -25,6 +25,7 @@ export class ProgressReportsService {
         progressPercentage: dto.progressPercentage,
         isLocked:           dto.isLocked ?? false,
         clientName:         order.clientName ?? null,
+        description:        dto.description ?? null,
       }).catch(() => {});
     }
     return report;

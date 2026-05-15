@@ -55,9 +55,11 @@ export class OrdersService {
     // Konfirmasi email ke client (non-blocking)
     if (order.clientEmail) {
       this.mailService.sendNewOrderToClient(order.clientEmail, {
-        orderId:    order.id,
-        title:      order.title,
-        clientName: order.clientName ?? null,
+        orderId:         order.id,
+        title:           order.title,
+        clientName:      order.clientName ?? null,
+        serviceCategory: order.serviceCategory ?? null,
+        description:     order.description ?? null,
       }).catch(() => {});
     }
 
@@ -81,6 +83,7 @@ export class OrdersService {
         title:      order.title,
         status:     dto.status,
         clientName: order.clientName ?? null,
+        deadline:   order.deadline ?? null,
       }).catch(() => {});
     }
     return updated!;
@@ -107,7 +110,7 @@ export class OrdersService {
     this.mailService.sendRevisionToAdmin({
       orderId:    id,
       title:      order.title,
-      itemCount:  items.length,
+      items:      items,
       clientName: order.clientName ?? null,
     }).catch(() => {});
     return updated!

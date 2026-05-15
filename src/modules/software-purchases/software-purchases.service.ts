@@ -37,7 +37,7 @@ export class SoftwarePurchasesService {
     const quantity   = dto.quantity ?? 1;
     const totalPrice = software.price * quantity;
 
-    return this.softwarePurchaseModel.create({
+    const purchase = await this.softwarePurchaseModel.create({
       clientId,
       softwareId:    software.id,
       softwareName:  software.name,
@@ -45,6 +45,21 @@ export class SoftwarePurchasesService {
       quantity,
       totalPrice,
     });
+
+    // Ambil data lengkap (dengan clientName & clientEmail via JOIN) lalu notif admin
+    const full = await this.softwarePurchaseModel.findById(purchase.id);
+    if (full) {
+      this.mailService.sendSoftwarePurchaseToAdmin({
+        purchaseId:   full.id,
+        softwareName: full.softwareName,
+        totalPrice:   full.totalPrice,
+        quantity:     full.quantity ?? 1,
+        clientName:   full.clientName ?? null,
+        clientEmail:  full.clientEmail ?? null,
+      }).catch(() => {});
+    }
+
+    return purchase;
   }
 
   async uploadReceipt(id: string, dto: UploadReceiptDto, clientId: string): Promise<SoftwarePurchase> {
@@ -72,6 +87,8 @@ export class SoftwarePurchasesService {
         clientEmail:  purchase.clientEmail,
         softwareName: purchase.softwareName,
         softcopyUrl,
+        quantity:     purchase.quantity   ?? undefined,
+        totalPrice:   purchase.totalPrice ?? undefined,
       });
     }
 

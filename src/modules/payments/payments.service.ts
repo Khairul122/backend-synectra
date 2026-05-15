@@ -67,11 +67,12 @@ export class PaymentsService {
     const order = await this.orderModel.findById(dto.orderId);
     if (order) {
       this.mailService.sendPaymentSubmittedToAdmin({
-        orderId:     order.id,
-        orderTitle:  order.title,
-        amount:      dto.amount,
-        paymentType: dto.paymentType,
-        clientName:  order.clientName ?? null,
+        orderId:       order.id,
+        orderTitle:    order.title,
+        amount:        dto.amount,
+        paymentType:   dto.paymentType,
+        clientName:    order.clientName ?? null,
+        paymentNumber: payment.paymentNumber ?? null,
       }).catch(() => {});
     }
     return payment;
@@ -86,10 +87,11 @@ export class PaymentsService {
     const order = await this.orderModel.findById(verified.orderId);
     if (order?.clientEmail) {
       this.mailService.sendPaymentVerified(order.clientEmail, {
-        orderId:    order.id,
-        orderTitle: order.title,
-        amount:     verified.amount,
-        clientName: order.clientName ?? null,
+        orderId:     order.id,
+        orderTitle:  order.title,
+        amount:      verified.amount,
+        clientName:  order.clientName ?? null,
+        paymentType: verified.paymentType ?? null,
       }).catch(() => {});
     }
     return verified;
