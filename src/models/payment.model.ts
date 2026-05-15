@@ -43,7 +43,7 @@ export class PaymentModel {
         order_id:         payload.orderId,
         payment_type:     payload.paymentType,
         amount:           payload.amount,
-        receipt_image_url: payload.receiptImageUrl,
+        receipt_image_url: payload.receiptImageUrl ?? null,
         payment_number:   payload.paymentNumber ?? null,
         status:           'pending_verification',
       }])

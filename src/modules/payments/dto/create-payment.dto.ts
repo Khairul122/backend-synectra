@@ -17,10 +17,10 @@ export class CreatePaymentDto {
   @IsNotEmpty()
   amount: number;
 
-  @ApiProperty({ example: 'https://storage.example.com/receipt.jpg' })
+  @ApiProperty({ example: 'https://storage.example.com/receipt.jpg', required: false, description: 'Bukti transfer (opsional jika dicatat oleh admin)' })
   @IsString()
-  @IsNotEmpty()
-  receiptImageUrl: string;
+  @IsOptional()
+  receiptImageUrl?: string;
 
   @ApiProperty({ example: 'TRF-20240514-001', required: false, description: 'Nomor referensi transfer dari bank' })
   @IsString()

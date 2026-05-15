@@ -6,7 +6,7 @@ export interface Payment {
   orderId: string;
   paymentType: string;
   amount: number;
-  receiptImageUrl: string;
+  receiptImageUrl: string | null;
   paymentNumber: string | null;
   status: PaymentStatus;
   notes: string | null;
