@@ -62,6 +62,9 @@ Berikut adalah daftar fitur dan arsitektur yang telah berhasil diimplementasikan
    - Validasi payload global menggunakan `ValidationPipe` (`class-validator` & `class-transformer`).
    - Konfigurasi environment server menggunakan Vercel.
 
+8. **Integrasi & Tools Lanjutan (Terbaru)**
+   - Mengonfigurasi Vercel MCP Server ke dalam file pengaturan project untuk ekstensi kapabilitas AI agents (`.mcp.json` / `settings.json`).
+
 ---
 
 ## 🛠️ Tech Stack
