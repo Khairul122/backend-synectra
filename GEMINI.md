@@ -65,6 +65,12 @@ Berikut adalah daftar fitur dan arsitektur yang telah berhasil diimplementasikan
 8. **Integrasi & Tools Lanjutan (Terbaru)**
    - Mengonfigurasi Vercel MCP Server ke dalam file pengaturan project untuk ekstensi kapabilitas AI agents (`.mcp.json` / `settings.json`).
 
+9. **Layanan Inti & Notifikasi Terpadu (Terbaru)**
+   - **Modul Umpan Balik (Feedback Module):** Fungsionalitas CRUD penuh untuk kritik, saran, & rating dengan kontrol akses admin.
+   - **Modul Layanan (Service Modules):** Implementasi pengelolaan `orders`, `payments`, `progress reports`, dan `software purchases`.
+   - **Sistem Notifikasi:** Integrasi layanan notifikasi otomatis via Email dan WhatsApp untuk pembaruan status pesanan.
+   - **Model Pembayaran:** Pembuatan model Supabase untuk manajemen struktur data pembayaran.
+
 ---
 
 ## 🛠️ Tech Stack
