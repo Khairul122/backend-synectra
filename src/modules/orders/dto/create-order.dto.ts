@@ -31,4 +31,9 @@ export class CreateOrderDto {
   @IsDateString()
   @IsOptional()
   deadline?: string;
+
+  @ApiProperty({ example: '08123456789', required: false, description: 'Nomor WhatsApp client untuk notifikasi' })
+  @IsString()
+  @IsOptional()
+  phone?: string;
 }

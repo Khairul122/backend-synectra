@@ -11,6 +11,7 @@ export interface Order {
   totalPrice: number | null;
   deadline: string | null;
   status: OrderStatus;
+  phone: string | null;
   createdAt: string;
   updatedAt: string;
 }

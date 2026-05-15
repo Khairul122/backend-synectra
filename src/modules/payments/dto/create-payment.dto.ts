@@ -26,4 +26,9 @@ export class CreatePaymentDto {
   @IsString()
   @IsOptional()
   paymentNumber?: string;
+
+  @ApiProperty({ example: 'Pembayaran tunai via kantor', required: false, description: 'Catatan tambahan (diisi admin)' })
+  @IsString()
+  @IsOptional()
+  notes?: string;
 }

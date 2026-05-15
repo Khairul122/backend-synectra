@@ -1,4 +1,4 @@
-import { Controller, Post, Patch, Body, Param, UseGuards, HttpCode, HttpStatus } from '@nestjs/common';
+import { Controller, Get, Post, Patch, Body, Param, Query, UseGuards, HttpCode, HttpStatus } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiCookieAuth, ApiParam } from '@nestjs/swagger';
 import { PaymentsService } from './payments.service';
 import { CreatePaymentDto } from './dto/create-payment.dto';
@@ -10,6 +10,23 @@ import { AdminGuard } from '../../common/guards/admin.guard';
 @Controller('payments')
 export class PaymentsController {
   constructor(private readonly paymentsService: PaymentsService) {}
+
+  @Get('income')
+  @UseGuards(JwtAuthGuard, AdminGuard)
+  @ApiCookieAuth('access_token')
+  @ApiOperation({ summary: 'Rekap pemasukan dari pembayaran terverifikasi (Admin only)' })
+  @ApiResponse({ status: 200, description: 'Data pemasukan berhasil diambil' })
+  getIncome(
+    @Query('view')  view?: string,
+    @Query('year')  year?: string,
+    @Query('month') month?: string,
+  ) {
+    return this.paymentsService.getIncome(
+      view ?? 'monthly',
+      year  ? parseInt(year,  10) : undefined,
+      month ? parseInt(month, 10) : undefined,
+    );
+  }
 
   @Post()
   @UseGuards(JwtAuthGuard)

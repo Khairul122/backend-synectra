@@ -16,6 +16,20 @@ export class PaymentModel {
     this.supabase = createClient(url, key);
   }
 
+  async findVerifiedForIncome(): Promise<{ amount: number; verifiedAt: string }[]> {
+    const { data, error } = await this.supabase
+      .from(SUPABASE_TABLES.PAYMENTS)
+      .select('amount, verified_at')
+      .eq('status', 'verified')
+      .not('verified_at', 'is', null)
+      .order('verified_at', { ascending: true });
+    if (error) throw error;
+    return (data ?? []).map(r => ({
+      amount:     Number(r.amount),
+      verifiedAt: r.verified_at as string,
+    }));
+  }
+
   async findByOrder(orderId: string): Promise<Payment[]> {
     const { data, error } = await this.supabase
       .from(SUPABASE_TABLES.PAYMENTS)
@@ -40,12 +54,13 @@ export class PaymentModel {
     const { data, error } = await this.supabase
       .from(SUPABASE_TABLES.PAYMENTS)
       .insert([{
-        order_id:         payload.orderId,
-        payment_type:     payload.paymentType,
-        amount:           payload.amount,
+        order_id:          payload.orderId,
+        payment_type:      payload.paymentType,
+        amount:            payload.amount,
         receipt_image_url: payload.receiptImageUrl ?? null,
-        payment_number:   payload.paymentNumber ?? null,
-        status:           'pending_verification',
+        payment_number:    payload.paymentNumber ?? null,
+        notes:             payload.notes ?? null,
+        status:            'pending_verification',
       }])
       .select(SELECT)
       .single();

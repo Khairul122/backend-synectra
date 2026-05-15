@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Patch, Body, Param, UseGuards, HttpCode, HttpStatus, Req } from '@nestjs/common';
+import { Controller, Get, Post, Patch, Delete, Body, Param, UseGuards, HttpCode, HttpStatus, Req } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiCookieAuth, ApiParam } from '@nestjs/swagger';
 import { OrdersService } from './orders.service';
 import { CreateOrderDto } from './dto/create-order.dto';
@@ -50,6 +50,18 @@ export class OrdersController {
       dto.clientId = user.id;
     }
     return this.ordersService.create(dto);
+  }
+
+  @Delete(':id')
+  @UseGuards(JwtAuthGuard, AdminGuard)
+  @ApiCookieAuth('access_token')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @ApiOperation({ summary: 'Hapus order beserta semua data terkait (Admin only)' })
+  @ApiParam({ name: 'id', type: 'string' })
+  @ApiResponse({ status: 204, description: 'Order berhasil dihapus' })
+  @ApiResponse({ status: 404, description: 'Order tidak ditemukan' })
+  delete(@Param('id') id: string) {
+    return this.ordersService.delete(id);
   }
 
   @Patch(':id/status')
