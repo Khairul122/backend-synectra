@@ -63,18 +63,19 @@ export class PaymentsService {
 
   async create(dto: CreatePaymentDto): Promise<Payment> {
     const payment = await this.paymentModel.create(dto);
-    // Notifikasi email ke admin (non-blocking)
-    const order = await this.orderModel.findById(dto.orderId);
-    if (order) {
-      this.mailService.sendPaymentSubmittedToAdmin({
-        orderId:       order.id,
-        orderTitle:    order.title,
-        amount:        dto.amount,
-        paymentType:   dto.paymentType,
-        clientName:    order.clientName ?? null,
-        paymentNumber: payment.paymentNumber ?? null,
-      }).catch(() => {});
-    }
+    this.orderModel.findById(dto.orderId)
+      .then(order => {
+        if (!order) return;
+        this.mailService.sendPaymentSubmittedToAdmin({
+          orderId:       order.id,
+          orderTitle:    order.title,
+          amount:        dto.amount,
+          paymentType:   dto.paymentType,
+          clientName:    order.clientName ?? null,
+          paymentNumber: payment.paymentNumber ?? null,
+        }).catch(() => {});
+      })
+      .catch(() => {});
     return payment;
   }
 
@@ -83,17 +84,19 @@ export class PaymentsService {
     if (!payment) throw new NotFoundException(`Payment dengan id ${id} tidak ditemukan`);
     const verified = await this.paymentModel.verify(id) as Payment;
     await this.progressReportModel.unlockByOrder(verified.orderId);
-    // Notifikasi email ke client (non-blocking)
-    const order = await this.orderModel.findById(verified.orderId);
-    if (order?.clientEmail) {
-      this.mailService.sendPaymentVerified(order.clientEmail, {
-        orderId:     order.id,
-        orderTitle:  order.title,
-        amount:      verified.amount,
-        clientName:  order.clientName ?? null,
-        paymentType: verified.paymentType ?? null,
-      }).catch(() => {});
-    }
+    // Fire-and-forget: order lookup hanya untuk email, tidak boleh block response
+    this.orderModel.findById(verified.orderId)
+      .then(order => {
+        if (!order?.clientEmail) return;
+        this.mailService.sendPaymentVerified(order.clientEmail, {
+          orderId:     order.id,
+          orderTitle:  order.title,
+          amount:      verified.amount,
+          clientName:  order.clientName ?? null,
+          paymentType: verified.paymentType ?? null,
+        }).catch(() => {});
+      })
+      .catch(() => {});
     return verified;
   }
 

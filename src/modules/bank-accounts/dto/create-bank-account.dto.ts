@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsBoolean, IsNotEmpty, IsOptional, IsString, IsUrl } from 'class-validator';
+import { IsBoolean, IsIn, IsNotEmpty, IsOptional, IsString, IsUrl } from 'class-validator';
 
 export class CreateBankAccountDto {
   @ApiProperty({ example: 'BCA' })
@@ -22,6 +22,17 @@ export class CreateBankAccountDto {
   @IsUrl()
   @IsOptional()
   bankLogo?: string;
+
+  @ApiProperty({ example: 'bank', enum: ['bank', 'qris', 'both'], required: false, default: 'bank' })
+  @IsIn(['bank', 'qris', 'both'])
+  @IsOptional()
+  paymentType?: 'bank' | 'qris' | 'both';
+
+  @ApiProperty({ example: 'https://storage.example.com/qris.png', required: false })
+  @IsString()
+  @IsUrl()
+  @IsOptional()
+  qrisImageUrl?: string;
 
   @ApiProperty({ example: true, required: false, default: true })
   @IsBoolean()

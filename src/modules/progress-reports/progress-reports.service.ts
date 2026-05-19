@@ -15,19 +15,21 @@ export class ProgressReportsService {
 
   async create(dto: CreateProgressReportDto): Promise<ProgressReport> {
     const report = await this.progressReportModel.create(dto);
-    // Notifikasi email ke client (non-blocking)
-    const order = await this.orderModel.findById(dto.orderId);
-    if (order?.clientEmail) {
-      this.mailService.sendProgressUpdateToClient(order.clientEmail, {
-        orderId:            order.id,
-        orderTitle:         order.title,
-        progressTitle:      dto.title,
-        progressPercentage: dto.progressPercentage,
-        isLocked:           dto.isLocked ?? false,
-        clientName:         order.clientName ?? null,
-        description:        dto.description ?? null,
-      }).catch(() => {});
-    }
+    // Fire-and-forget: hanya untuk notifikasi email, tidak boleh block response
+    this.orderModel.findById(dto.orderId)
+      .then(order => {
+        if (!order?.clientEmail) return;
+        this.mailService.sendProgressUpdateToClient(order.clientEmail, {
+          orderId:            order.id,
+          orderTitle:         order.title,
+          progressTitle:      dto.title,
+          progressPercentage: dto.progressPercentage,
+          isLocked:           dto.isLocked ?? false,
+          clientName:         order.clientName ?? null,
+          description:        dto.description ?? null,
+        }).catch(() => {});
+      })
+      .catch(() => {});
     return report;
   }
 

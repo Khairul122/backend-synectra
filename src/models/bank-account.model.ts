@@ -4,7 +4,7 @@ import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import { SUPABASE_TABLES } from '../constants';
 import { BankAccount } from '../types/bank-account.types';
 
-const SELECT = 'id, bank_name, account_number, account_holder, bank_logo, is_active, created_at, updated_at';
+const SELECT = 'id, bank_name, account_number, account_holder, bank_logo, payment_type, qris_image_url, is_active, created_at, updated_at';
 
 @Injectable()
 export class BankAccountModel {
@@ -42,8 +42,10 @@ export class BankAccountModel {
         bank_name:      payload.bankName,
         account_number: payload.accountNumber,
         account_holder: payload.accountHolder,
-        bank_logo:      payload.bankLogo ?? null,
-        is_active:      payload.isActive ?? true,
+        bank_logo:      payload.bankLogo     ?? null,
+        payment_type:   payload.paymentType  ?? 'bank',
+        qris_image_url: payload.qrisImageUrl ?? null,
+        is_active:      payload.isActive     ?? true,
       }])
       .select(SELECT)
       .single();
@@ -59,6 +61,8 @@ export class BankAccountModel {
         ...(payload.accountNumber !== undefined && { account_number: payload.accountNumber }),
         ...(payload.accountHolder !== undefined && { account_holder: payload.accountHolder }),
         ...(payload.bankLogo      !== undefined && { bank_logo:      payload.bankLogo }),
+        ...(payload.paymentType   !== undefined && { payment_type:   payload.paymentType }),
+        ...(payload.qrisImageUrl  !== undefined && { qris_image_url: payload.qrisImageUrl }),
         ...(payload.isActive      !== undefined && { is_active:      payload.isActive }),
         updated_at: new Date().toISOString(),
       })
@@ -84,6 +88,8 @@ export class BankAccountModel {
       accountNumber: row.account_number as string,
       accountHolder: row.account_holder as string,
       bankLogo:      row.bank_logo as string | null,
+      paymentType:   (row.payment_type ?? 'bank') as 'bank' | 'qris' | 'both',
+      qrisImageUrl:  row.qris_image_url as string | null,
       isActive:      row.is_active as boolean,
       createdAt:     row.created_at as string,
       updatedAt:     row.updated_at as string,
