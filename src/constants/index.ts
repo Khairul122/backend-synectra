@@ -14,6 +14,7 @@ export const SUPABASE_TABLES = {
   SOFTWARE_PURCHASES: 'software_purchases',
   ORDER_REVISIONS:    'order_revisions',
   FEEDBACKS:          'feedbacks',
+  TODOS:              'todos',
 };
 
 export const AUTH_MESSAGES = {
