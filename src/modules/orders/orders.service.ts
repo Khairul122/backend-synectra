@@ -9,6 +9,9 @@ import { CreateOrderDto } from './dto/create-order.dto';
 import { UpdateOrderStatusDto } from './dto/update-order-status.dto';
 import { UpdateOrderDetailsDto } from './dto/update-order-details.dto';
 import { RequestRevisionDto } from './dto/request-revision.dto';
+import { CreateAdminRevisionDto } from './dto/create-admin-revision.dto';
+import { RespondRevisionDto } from './dto/respond-revision.dto';
+import { OrderRevision } from '../../types/order.types';
 
 @Injectable()
 export class OrdersService {
@@ -114,6 +117,37 @@ export class OrdersService {
       clientName: order.clientName ?? null,
     }).catch(() => {});
     return updated!
+  }
+
+  async createAdminRevision(id: string, dto: CreateAdminRevisionDto): Promise<Order> {
+    const order = await this.orderModel.findById(id);
+    if (!order) throw new NotFoundException(`Order dengan id ${id} tidak ditemukan`);
+    if (order.status === 'completed' || order.status === 'canceled') {
+      throw new BadRequestException(`Tidak bisa menambah revisi untuk order dengan status "${order.status}"`);
+    }
+    const items = dto.items.map(i => ({ notes: i.notes, images: i.images ?? [] }));
+    await this.orderRevisionModel.create(id, items, 'admin');
+    const updated = await this.orderModel.updateStatus(id, 'revision');
+    if (order.clientEmail) {
+      this.mailService.sendOrderStatusUpdate(order.clientEmail, {
+        orderId:    id,
+        title:      order.title,
+        status:     'revision',
+        clientName: order.clientName ?? null,
+        deadline:   order.deadline ?? null,
+      }).catch(() => {});
+    }
+    return updated!;
+  }
+
+  async respondToRevision(id: string, revisionId: string, dto: RespondRevisionDto): Promise<OrderRevision> {
+    const order = await this.orderModel.findById(id);
+    if (!order) throw new NotFoundException(`Order dengan id ${id} tidak ditemukan`);
+    const revision = await this.orderRevisionModel.findById(revisionId);
+    if (!revision || revision.orderId !== id) {
+      throw new NotFoundException(`Revisi dengan id ${revisionId} tidak ditemukan pada order ini`);
+    }
+    return this.orderRevisionModel.respond(revisionId, dto.notes, dto.images ?? []);
   }
 
   async completeByClient(id: string, userId: string, userRole: string): Promise<Order> {

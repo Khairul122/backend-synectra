@@ -17,18 +17,43 @@ export class OrderRevisionModel {
   async findByOrder(orderId: string): Promise<OrderRevision[]> {
     const { data, error } = await this.supabase
       .from(SUPABASE_TABLES.ORDER_REVISIONS)
-      .select('id, order_id, items, created_at')
+      .select('id, order_id, source, items, admin_response, admin_responded_at, created_at')
       .eq('order_id', orderId)
       .order('created_at', { ascending: true });
     if (error) throw error;
     return (data ?? []).map(this.map);
   }
 
-  async create(orderId: string, items: Array<{ notes: string; images: string[] }>): Promise<OrderRevision> {
+  async findById(id: string): Promise<OrderRevision | null> {
     const { data, error } = await this.supabase
       .from(SUPABASE_TABLES.ORDER_REVISIONS)
-      .insert([{ order_id: orderId, items }])
-      .select('id, order_id, items, created_at')
+      .select('id, order_id, source, items, admin_response, admin_responded_at, created_at')
+      .eq('id', id)
+      .maybeSingle();
+    if (error) throw error;
+    return data ? this.map(data) : null;
+  }
+
+  async create(
+    orderId: string,
+    items: Array<{ notes: string; images: string[] }>,
+    source: 'client' | 'admin' = 'client',
+  ): Promise<OrderRevision> {
+    const { data, error } = await this.supabase
+      .from(SUPABASE_TABLES.ORDER_REVISIONS)
+      .insert([{ order_id: orderId, items, source }])
+      .select('id, order_id, source, items, admin_response, admin_responded_at, created_at')
+      .single();
+    if (error) throw error;
+    return this.map(data);
+  }
+
+  async respond(revisionId: string, notes: string, images: string[]): Promise<OrderRevision> {
+    const { data, error } = await this.supabase
+      .from(SUPABASE_TABLES.ORDER_REVISIONS)
+      .update({ admin_response: { notes, images }, admin_responded_at: new Date().toISOString() })
+      .eq('id', revisionId)
+      .select('id, order_id, source, items, admin_response, admin_responded_at, created_at')
       .single();
     if (error) throw error;
     return this.map(data);
@@ -36,10 +61,13 @@ export class OrderRevisionModel {
 
   private map(row: Record<string, any>): OrderRevision {
     return {
-      id:        row.id,
-      orderId:   row.order_id,
-      items:     row.items ?? [],
-      createdAt: row.created_at,
+      id:               row.id,
+      orderId:          row.order_id,
+      source:           row.source ?? 'client',
+      items:            row.items ?? [],
+      adminResponse:    row.admin_response ?? null,
+      adminRespondedAt: row.admin_responded_at ?? null,
+      createdAt:        row.created_at,
     };
   }
 }

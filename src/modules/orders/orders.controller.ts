@@ -5,6 +5,8 @@ import { CreateOrderDto } from './dto/create-order.dto';
 import { UpdateOrderStatusDto } from './dto/update-order-status.dto';
 import { UpdateOrderDetailsDto } from './dto/update-order-details.dto';
 import { RequestRevisionDto } from './dto/request-revision.dto';
+import { CreateAdminRevisionDto } from './dto/create-admin-revision.dto';
+import { RespondRevisionDto } from './dto/respond-revision.dto';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { AdminGuard } from '../../common/guards/admin.guard';
 import type { Request } from 'express';
@@ -95,6 +97,31 @@ export class OrdersController {
   requestRevision(@Param('id') id: string, @Body() dto: RequestRevisionDto, @Req() req: Request) {
     const user = req.user as AuthUser;
     return this.ordersService.requestRevision(id, user.id, dto);
+  }
+
+  @Post(':id/revisions')
+  @UseGuards(JwtAuthGuard, AdminGuard)
+  @ApiCookieAuth('access_token')
+  @HttpCode(HttpStatus.CREATED)
+  @ApiOperation({ summary: 'Buat permintaan revisi baru oleh admin (Admin only)' })
+  @ApiParam({ name: 'id', type: 'string' })
+  @ApiResponse({ status: 201, description: 'Revisi berhasil dibuat dan status order menjadi "revision"' })
+  @ApiResponse({ status: 400, description: 'Order sudah completed/canceled' })
+  @ApiResponse({ status: 404, description: 'Order tidak ditemukan' })
+  createAdminRevision(@Param('id') id: string, @Body() dto: CreateAdminRevisionDto) {
+    return this.ordersService.createAdminRevision(id, dto);
+  }
+
+  @Patch(':id/revisions/:revisionId/respond')
+  @UseGuards(JwtAuthGuard, AdminGuard)
+  @ApiCookieAuth('access_token')
+  @ApiOperation({ summary: 'Balas revisi dengan catatan & bukti gambar (Admin only)' })
+  @ApiParam({ name: 'id', type: 'string' })
+  @ApiParam({ name: 'revisionId', type: 'string' })
+  @ApiResponse({ status: 200, description: 'Balasan revisi berhasil disimpan' })
+  @ApiResponse({ status: 404, description: 'Order atau revisi tidak ditemukan' })
+  respondRevision(@Param('id') id: string, @Param('revisionId') revisionId: string, @Body() dto: RespondRevisionDto) {
+    return this.ordersService.respondToRevision(id, revisionId, dto);
   }
 
   @Patch(':id/complete')

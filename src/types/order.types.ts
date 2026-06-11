@@ -19,6 +19,9 @@ export interface Order {
 export interface OrderRevision {
   id: string;
   orderId: string;
+  source: 'client' | 'admin';
   items: Array<{ notes: string; images: string[] }>;
+  adminResponse: { notes: string; images: string[] } | null;
+  adminRespondedAt: string | null;
   createdAt: string;
 }
