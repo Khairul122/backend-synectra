@@ -8,6 +8,7 @@ export interface Client {
   userId: string | null;
   companyName: string | null;
   email: string | null;
+  isVip: boolean;
   createdAt: string;
   updatedAt: string;
   // joined from users
@@ -16,7 +17,7 @@ export interface Client {
   role?: string;
 }
 
-const SELECT = 'id, user_id, company_name, email, created_at, updated_at, users!user_id ( full_name, avatar_url, role )';
+const SELECT = 'id, user_id, company_name, email, is_vip, created_at, updated_at, users!user_id ( full_name, avatar_url, role )';
 
 @Injectable()
 export class ClientModel {
@@ -67,12 +68,13 @@ export class ClientModel {
     return this.map(data);
   }
 
-  async update(id: string, payload: { companyName?: string; email?: string }): Promise<Client | null> {
+  async update(id: string, payload: { companyName?: string; email?: string; isVip?: boolean }): Promise<Client | null> {
     const { data, error } = await this.supabase
       .from(SUPABASE_TABLES.CLIENTS)
       .update({
         ...(payload.companyName !== undefined && { company_name: payload.companyName }),
         ...(payload.email       !== undefined && { email:        payload.email }),
+        ...(payload.isVip       !== undefined && { is_vip:       payload.isVip }),
         updated_at: new Date().toISOString(),
       })
       .eq('id', id)
@@ -90,6 +92,15 @@ export class ClientModel {
     if (error) throw error;
   }
 
+  async findVipUserIds(): Promise<Set<string>> {
+    const { data, error } = await this.supabase
+      .from(SUPABASE_TABLES.CLIENTS)
+      .select('user_id')
+      .eq('is_vip', true);
+    if (error) throw error;
+    return new Set((data ?? []).map((row) => row.user_id).filter((id): id is string => !!id));
+  }
+
   private map(row: Record<string, any>): Client {
     const user = row.users as any;
     return {
@@ -97,6 +108,7 @@ export class ClientModel {
       userId:      row.user_id,
       companyName: row.company_name,
       email:       row.email,
+      isVip:       row.is_vip ?? false,
       createdAt:   row.created_at,
       updatedAt:   row.updated_at,
       fullName:    user?.full_name ?? null,

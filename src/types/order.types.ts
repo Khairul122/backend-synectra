@@ -5,6 +5,7 @@ export interface Order {
   clientId: string;
   clientName?: string;
   clientEmail?: string;
+  isVip?: boolean;
   title: string;
   serviceCategory: string | null;
   description: string | null;

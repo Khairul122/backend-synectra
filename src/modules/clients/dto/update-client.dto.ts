@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsEmail, IsOptional, IsString } from 'class-validator';
+import { IsBoolean, IsEmail, IsOptional, IsString } from 'class-validator';
 
 export class UpdateClientDto {
   @ApiProperty({ example: 'PT Maju Bersama', required: false })
@@ -11,4 +11,9 @@ export class UpdateClientDto {
   @IsEmail()
   @IsOptional()
   email?: string;
+
+  @ApiProperty({ example: true, required: false })
+  @IsBoolean()
+  @IsOptional()
+  isVip?: boolean;
 }

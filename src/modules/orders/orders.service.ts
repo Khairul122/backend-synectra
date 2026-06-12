@@ -3,6 +3,7 @@ import { OrderModel } from '../../models/order.model';
 import { OrderRevisionModel } from '../../models/order-revision.model';
 import { PaymentModel } from '../../models/payment.model';
 import { ProgressReportModel } from '../../models/progress-report.model';
+import { ClientModel } from '../../models/client.model';
 import { MailService } from '../mail/mail.service';
 import { Order } from '../../types/order.types';
 import { CreateOrderDto } from './dto/create-order.dto';
@@ -20,11 +21,16 @@ export class OrdersService {
     private readonly orderRevisionModel: OrderRevisionModel,
     private readonly paymentModel: PaymentModel,
     private readonly progressReportModel: ProgressReportModel,
+    private readonly clientModel: ClientModel,
     private readonly mailService: MailService,
   ) {}
 
-  findAll(): Promise<Order[]> {
-    return this.orderModel.findAll();
+  async findAll(): Promise<Order[]> {
+    const [orders, vipUserIds] = await Promise.all([
+      this.orderModel.findAll(),
+      this.clientModel.findVipUserIds(),
+    ]);
+    return orders.map((order) => ({ ...order, isVip: vipUserIds.has(order.clientId) }));
   }
 
   findByClient(clientId: string): Promise<Order[]> {
@@ -34,12 +40,13 @@ export class OrdersService {
   async findDetail(id: string) {
     const order = await this.orderModel.findById(id);
     if (!order) throw new NotFoundException(`Order dengan id ${id} tidak ditemukan`);
-    const [payments, progressReports, revisions] = await Promise.all([
+    const [payments, progressReports, revisions, vipUserIds] = await Promise.all([
       this.paymentModel.findByOrder(id),
       this.progressReportModel.findByOrder(id),
       this.orderRevisionModel.findByOrder(id),
+      this.clientModel.findVipUserIds(),
     ]);
-    return { ...order, payments, progressReports, revisions };
+    return { ...order, isVip: vipUserIds.has(order.clientId), payments, progressReports, revisions };
   }
 
   async create(dto: CreateOrderDto): Promise<Order> {
