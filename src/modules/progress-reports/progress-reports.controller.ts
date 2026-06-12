@@ -1,7 +1,8 @@
-import { Controller, Get, Post, Body, Param, UseGuards, HttpCode, HttpStatus } from '@nestjs/common';
+import { Controller, Get, Post, Patch, Body, Param, UseGuards, HttpCode, HttpStatus } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiCookieAuth, ApiParam } from '@nestjs/swagger';
 import { ProgressReportsService } from './progress-reports.service';
 import { CreateProgressReportDto } from './dto/create-progress-report.dto';
+import { UpdateProgressReportDto } from './dto/update-progress-report.dto';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { AdminGuard } from '../../common/guards/admin.guard';
 
@@ -28,5 +29,18 @@ export class ProgressReportsController {
   @ApiResponse({ status: 200, description: 'Timeline progress' })
   findByOrder(@Param('orderId') orderId: string) {
     return this.progressReportsService.findByOrder(orderId);
+  }
+
+  @Patch(':id')
+  @UseGuards(JwtAuthGuard, AdminGuard)
+  @ApiCookieAuth('access_token')
+  @ApiOperation({ summary: 'Update progress report (Admin only)' })
+  @ApiParam({ name: 'id', type: 'string' })
+  @ApiResponse({ status: 200, description: 'Progress report berhasil diupdate' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({ status: 403, description: 'Forbidden — hanya admin' })
+  @ApiResponse({ status: 404, description: 'Progress report tidak ditemukan' })
+  update(@Param('id') id: string, @Body() dto: UpdateProgressReportDto) {
+    return this.progressReportsService.update(id, dto);
   }
 }

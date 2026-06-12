@@ -43,6 +43,33 @@ export class ProgressReportModel {
     return this.map(data);
   }
 
+  async findById(id: string): Promise<ProgressReport | null> {
+    const { data, error } = await this.supabase
+      .from(SUPABASE_TABLES.PROGRESS_REPORTS)
+      .select(SELECT)
+      .eq('id', id)
+      .single();
+    if (error && error.code !== 'PGRST116') throw error;
+    return data ? this.map(data) : null;
+  }
+
+  async update(id: string, payload: Partial<ProgressReport>): Promise<ProgressReport | null> {
+    const { data, error } = await this.supabase
+      .from(SUPABASE_TABLES.PROGRESS_REPORTS)
+      .update({
+        ...(payload.title              !== undefined && { title:               payload.title }),
+        ...(payload.description        !== undefined && { description:         payload.description }),
+        ...(payload.progressPercentage !== undefined && { progress_percentage: payload.progressPercentage }),
+        ...(payload.attachmentUrl      !== undefined && { attachment_url:      payload.attachmentUrl }),
+        ...(payload.isLocked           !== undefined && { is_locked:           payload.isLocked }),
+      })
+      .eq('id', id)
+      .select(SELECT)
+      .single();
+    if (error && error.code !== 'PGRST116') throw error;
+    return data ? this.map(data) : null;
+  }
+
   async unlockByOrder(orderId: string): Promise<void> {
     const { error } = await this.supabase
       .from(SUPABASE_TABLES.PROGRESS_REPORTS)

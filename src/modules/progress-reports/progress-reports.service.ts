@@ -1,9 +1,10 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { ProgressReportModel } from '../../models/progress-report.model';
 import { OrderModel } from '../../models/order.model';
 import { MailService } from '../mail/mail.service';
 import { ProgressReport } from '../../types/progress-report.types';
 import { CreateProgressReportDto } from './dto/create-progress-report.dto';
+import { UpdateProgressReportDto } from './dto/update-progress-report.dto';
 
 @Injectable()
 export class ProgressReportsService {
@@ -35,6 +36,14 @@ export class ProgressReportsService {
 
   findByOrder(orderId: string): Promise<ProgressReport[]> {
     return this.progressReportModel.findByOrder(orderId);
+  }
+
+  async update(id: string, dto: UpdateProgressReportDto): Promise<ProgressReport> {
+    const existing = await this.progressReportModel.findById(id);
+    if (!existing) throw new NotFoundException(`Progress report dengan id ${id} tidak ditemukan`);
+    const updated = await this.progressReportModel.update(id, dto);
+    if (!updated) throw new NotFoundException(`Progress report dengan id ${id} tidak ditemukan`);
+    return updated;
   }
 
   unlockByOrder(orderId: string): Promise<void> {
