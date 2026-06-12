@@ -1,5 +1,6 @@
 import { Controller, Get, Post, Patch, Delete, Body, Param, UseGuards, HttpCode, HttpStatus } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiCookieAuth, ApiParam } from '@nestjs/swagger';
+import { Throttle } from '@nestjs/throttler';
 import { FeedbacksService } from './feedbacks.service';
 import { CreateFeedbackDto } from './dto/create-feedback.dto';
 import { UpdateFeedbackDto } from './dto/update-feedback.dto';
@@ -19,6 +20,7 @@ export class FeedbacksController {
   }
 
   @Post()
+  @Throttle({ default: { limit: 3, ttl: 60_000 } })
   @HttpCode(HttpStatus.CREATED)
   @ApiOperation({ summary: 'Submit feedback baru (publik, tanpa auth)' })
   @ApiResponse({ status: 201, description: 'Feedback berhasil dikirim' })

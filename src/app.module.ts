@@ -1,5 +1,7 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
+import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
+import { APP_GUARD } from '@nestjs/core';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { AuthModule } from './modules/auth/auth.module';
@@ -29,6 +31,12 @@ import googleAuthConfig from './config/google-auth.config';
       isGlobal: true,
       load: [supabaseConfig, jwtConfig, googleAuthConfig],
     }),
+    // Rate limiting global: 60 request/menit per IP.
+    // Catatan: storage in-memory bersifat per serverless instance (reset saat
+    // cold start) — ini defense-in-depth; pertahanan utama ada di WAF Vercel.
+    ThrottlerModule.forRoot({
+      throttlers: [{ name: 'default', ttl: 60_000, limit: 60 }],
+    }),
     AuthModule,
     PortfolioModule,
     BannersModule,
@@ -48,6 +56,6 @@ import googleAuthConfig from './config/google-auth.config';
     SettingsModule,
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [AppService, { provide: APP_GUARD, useClass: ThrottlerGuard }],
 })
 export class AppModule {}

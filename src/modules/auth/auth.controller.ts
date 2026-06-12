@@ -18,6 +18,7 @@ import {
   ApiBody,
 } from '@nestjs/swagger';
 import type { Request, Response } from 'express';
+import { Throttle } from '@nestjs/throttler';
 
 import { AuthService } from './auth.service';
 import { GoogleAuthGuard } from '../../common/guards/google-auth.guard';
@@ -40,6 +41,7 @@ export class AuthController {
   ) {}
 
   @Post('register')
+  @Throttle({ default: { limit: 5, ttl: 60_000 } })
   @HttpCode(HttpStatus.CREATED)
   @ApiOperation({ summary: 'Registrasi akun baru dengan email dan password' })
   @ApiBody({ type: RegisterDto })
@@ -56,6 +58,7 @@ export class AuthController {
   }
 
   @Post('login')
+  @Throttle({ default: { limit: 5, ttl: 60_000 } })
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Login dengan email dan password' })
   @ApiBody({ type: LoginDto })

@@ -5,6 +5,7 @@ import { ExpressAdapter } from '@nestjs/platform-express';
 import cookieParser from 'cookie-parser';
 import express from 'express';
 import cors from 'cors';
+import helmet from 'helmet';
 
 import { AppModule } from './app.module';
 import { HttpExceptionFilter } from './common/filters/http-exception.filter';
@@ -13,10 +14,34 @@ import { ResponseInterceptor } from './common/interceptors/response.interceptor'
 const server = express();
 let app: INestApplication;
 
-// CORS untuk akses Swagger UI dan tools lain (Postman, curl)
-// Request dari frontend production sudah di-proxy oleh Vercel sehingga tidak perlu CORS
+// Di belakang proxy Vercel: baca IP asli klien dari x-forwarded-for
+// agar rate limiting (throttler) menghitung per klien, bukan per proxy
+server.set('trust proxy', 1);
+
+// Security headers; CSP dinonaktifkan di dev karena Swagger UI load asset dari cdnjs
+server.use(
+  helmet({
+    contentSecurityPolicy: process.env.NODE_ENV === 'production' ? undefined : false,
+  }),
+);
+
+// CORS whitelist: hanya frontend resmi + localhost dev.
+// Request tanpa header Origin (curl, Postman, OAuth redirect) tetap diizinkan.
 // maxAge: cache hasil preflight OPTIONS di browser agar tidak berulang setiap request
-server.use(cors({ origin: true, credentials: true, maxAge: 86400 }));
+const allowedOrigins = [
+  process.env.FRONTEND_URL,
+  'https://synectra-pi.vercel.app',
+  'https://synectra-khairulhudas-projects.vercel.app',
+  'http://localhost:5173',
+  'http://localhost:3000',
+].filter(Boolean);
+server.use(
+  cors({
+    origin: (origin, cb) => cb(null, !origin || allowedOrigins.includes(origin)),
+    credentials: true,
+    maxAge: 86400,
+  }),
+);
 
 export const setupApp = async (nestApp: INestApplication) => {
   nestApp.use(cookieParser());
@@ -34,21 +59,24 @@ export const setupApp = async (nestApp: INestApplication) => {
   nestApp.useGlobalFilters(new HttpExceptionFilter());
   nestApp.useGlobalInterceptors(new ResponseInterceptor());
 
-  const config = new DocumentBuilder()
-    .setTitle('Synectra API')
-    .setDescription('Dokumentasi API untuk platform Synectra')
-    .setVersion('1.0')
-    .addCookieAuth('access_token')
-    .build();
-  const document = SwaggerModule.createDocument(nestApp, config);
-  SwaggerModule.setup('api/docs', nestApp, document, {
-    customCssUrl:
-      'https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/5.18.2/swagger-ui.min.css',
-    customJs: [
-      'https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/5.18.2/swagger-ui-bundle.min.js',
-      'https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/5.18.2/swagger-ui-standalone-preset.min.js',
-    ],
-  });
+  // Swagger hanya di non-production agar skema API tidak terekspos ke publik
+  if (process.env.NODE_ENV !== 'production') {
+    const config = new DocumentBuilder()
+      .setTitle('Synectra API')
+      .setDescription('Dokumentasi API untuk platform Synectra')
+      .setVersion('1.0')
+      .addCookieAuth('access_token')
+      .build();
+    const document = SwaggerModule.createDocument(nestApp, config);
+    SwaggerModule.setup('api/docs', nestApp, document, {
+      customCssUrl:
+        'https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/5.18.2/swagger-ui.min.css',
+      customJs: [
+        'https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/5.18.2/swagger-ui-bundle.min.js',
+        'https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/5.18.2/swagger-ui-standalone-preset.min.js',
+      ],
+    });
+  }
 };
 
 async function bootstrap() {
