@@ -15,6 +15,7 @@ export const SUPABASE_TABLES = {
   ORDER_REVISIONS:    'order_revisions',
   FEEDBACKS:          'feedbacks',
   TODOS:              'todos',
+  SETTINGS:           'app_settings',
 };
 
 export const AUTH_MESSAGES = {

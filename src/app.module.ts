@@ -18,6 +18,7 @@ import { ClientsModule } from './modules/clients/clients.module';
 import { UsersModule } from './modules/users/users.module';
 import { FeedbacksModule } from './modules/feedbacks/feedbacks.module';
 import { TodosModule } from './modules/todos/todos.module';
+import { SettingsModule } from './modules/settings/settings.module';
 import supabaseConfig from './config/supabase.config';
 import jwtConfig from './config/jwt.config';
 import googleAuthConfig from './config/google-auth.config';
@@ -44,6 +45,7 @@ import googleAuthConfig from './config/google-auth.config';
     UsersModule,
     FeedbacksModule,
     TodosModule,
+    SettingsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

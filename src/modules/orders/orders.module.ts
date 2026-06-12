@@ -7,9 +7,10 @@ import { PaymentModel } from '../../models/payment.model';
 import { ProgressReportModel } from '../../models/progress-report.model';
 import { ClientModel } from '../../models/client.model';
 import { MailModule } from '../mail/mail.module';
+import { SettingsModule } from '../settings/settings.module';
 
 @Module({
-  imports:     [MailModule],
+  imports:     [MailModule, SettingsModule],
   controllers: [OrdersController],
   providers:   [OrdersService, OrderModel, OrderRevisionModel, PaymentModel, ProgressReportModel, ClientModel],
 })

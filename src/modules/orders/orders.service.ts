@@ -4,6 +4,7 @@ import { OrderRevisionModel } from '../../models/order-revision.model';
 import { PaymentModel } from '../../models/payment.model';
 import { ProgressReportModel } from '../../models/progress-report.model';
 import { ClientModel } from '../../models/client.model';
+import { SettingsModel } from '../../models/settings.model';
 import { MailService } from '../mail/mail.service';
 import { Order } from '../../types/order.types';
 import { CreateOrderDto } from './dto/create-order.dto';
@@ -25,6 +26,7 @@ export class OrdersService {
     private readonly paymentModel: PaymentModel,
     private readonly progressReportModel: ProgressReportModel,
     private readonly clientModel: ClientModel,
+    private readonly settingsModel: SettingsModel,
     private readonly mailService: MailService,
   ) {}
 
@@ -197,6 +199,7 @@ export class OrdersService {
     if (user.role !== 'admin' && order.clientId !== user.id) {
       throw new ForbiddenException('Anda tidak memiliki akses ke order ini');
     }
-    return buildInvoicePdf(order);
+    const signatureUrl = await this.settingsModel.getValue('company_signature_url');
+    return buildInvoicePdf(order, signatureUrl);
   }
 }
