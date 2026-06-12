@@ -62,7 +62,7 @@ export class CreateServicePackageDto {
   @IsOptional()
   iconUrl?: string;
 
-  @ApiProperty({ example: 'Web', required: false, enum: ['Web', 'Mobile', 'UI/UX', 'Tugas', 'Lainnya'] })
+  @ApiProperty({ example: 'Paket Landing Page', required: false, enum: ['Paket Landing Page', 'Paket Website Company Profile', 'Paket Aplikasi Mobile', 'Paket Joki Tugas Akhir'] })
   @IsString()
   @IsOptional()
   category?: string;
