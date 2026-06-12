@@ -11,4 +11,3 @@ Backend REST API for the Synectra project, built with NestJS and Supabase (Postg
 - **Mail Service**: Pengiriman notifikasi via email terintegrasi.
 - **API Documentation**: Swagger OpenAPI terintegrasi.
 
-> **Note:** Untuk panduan arsitektur, aturan Clean Code, struktur MC (Model-Controller), dan detail implementasi, silakan merujuk ke file [`AGENTS.md`](./AGENTS.md).
