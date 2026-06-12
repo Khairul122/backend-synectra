@@ -15,7 +15,8 @@ let app: INestApplication;
 
 // CORS untuk akses Swagger UI dan tools lain (Postman, curl)
 // Request dari frontend production sudah di-proxy oleh Vercel sehingga tidak perlu CORS
-server.use(cors({ origin: true, credentials: true }));
+// maxAge: cache hasil preflight OPTIONS di browser agar tidak berulang setiap request
+server.use(cors({ origin: true, credentials: true, maxAge: 86400 }));
 
 export const setupApp = async (nestApp: INestApplication) => {
   nestApp.use(cookieParser());
