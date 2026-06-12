@@ -1,5 +1,6 @@
-import { Controller, Get, Post, Patch, Delete, Body, Param, UseGuards, HttpCode, HttpStatus, Req } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse, ApiCookieAuth, ApiParam } from '@nestjs/swagger';
+import { Controller, Get, Post, Patch, Delete, Body, Param, UseGuards, HttpCode, HttpStatus, Req, Res } from '@nestjs/common';
+import { ApiTags, ApiOperation, ApiResponse, ApiCookieAuth, ApiParam, ApiProduces } from '@nestjs/swagger';
+import type { Response } from 'express';
 import { OrdersService } from './orders.service';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { UpdateOrderStatusDto } from './dto/update-order-status.dto';
@@ -7,6 +8,7 @@ import { UpdateOrderDetailsDto } from './dto/update-order-details.dto';
 import { RequestRevisionDto } from './dto/request-revision.dto';
 import { CreateAdminRevisionDto } from './dto/create-admin-revision.dto';
 import { RespondRevisionDto } from './dto/respond-revision.dto';
+import { UpdateOrderPriorityDto } from './dto/update-order-priority.dto';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { AdminGuard } from '../../common/guards/admin.guard';
 import type { Request } from 'express';
@@ -76,6 +78,17 @@ export class OrdersController {
     return this.ordersService.updateStatus(id, dto);
   }
 
+  @Patch(':id/priority')
+  @UseGuards(JwtAuthGuard, AdminGuard)
+  @ApiCookieAuth('access_token')
+  @ApiOperation({ summary: 'Update prioritas order (Admin only)' })
+  @ApiParam({ name: 'id', type: 'string' })
+  @ApiResponse({ status: 200, description: 'Prioritas order berhasil diupdate' })
+  @ApiResponse({ status: 404, description: 'Order tidak ditemukan' })
+  updatePriority(@Param('id') id: string, @Body() dto: UpdateOrderPriorityDto) {
+    return this.ordersService.updatePriority(id, dto);
+  }
+
   @Patch(':id/details')
   @UseGuards(JwtAuthGuard, AdminGuard)
   @ApiCookieAuth('access_token')
@@ -135,5 +148,24 @@ export class OrdersController {
   completeOrder(@Param('id') id: string, @Req() req: Request) {
     const user = req.user as AuthUser;
     return this.ordersService.completeByClient(id, user.id, user.role);
+  }
+
+  @Get(':id/invoice')
+  @UseGuards(JwtAuthGuard)
+  @ApiCookieAuth('access_token')
+  @ApiProduces('application/pdf')
+  @ApiOperation({ summary: 'Unduh invoice PDF order (pemilik order atau admin)' })
+  @ApiParam({ name: 'id', type: 'string' })
+  @ApiResponse({ status: 200, description: 'Berkas PDF invoice' })
+  @ApiResponse({ status: 403, description: 'Bukan pemilik order' })
+  @ApiResponse({ status: 404, description: 'Order tidak ditemukan' })
+  async downloadInvoice(@Param('id') id: string, @Req() req: Request, @Res() res: Response): Promise<void> {
+    const user = req.user as AuthUser;
+    const pdf = await this.ordersService.generateInvoicePdf(id, user);
+    res.set({
+      'Content-Type': 'application/pdf',
+      'Content-Disposition': `attachment; filename="invoice-${id}.pdf"`,
+    });
+    res.send(pdf);
   }
 }

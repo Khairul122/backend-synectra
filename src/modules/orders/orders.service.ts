@@ -12,7 +12,10 @@ import { UpdateOrderDetailsDto } from './dto/update-order-details.dto';
 import { RequestRevisionDto } from './dto/request-revision.dto';
 import { CreateAdminRevisionDto } from './dto/create-admin-revision.dto';
 import { RespondRevisionDto } from './dto/respond-revision.dto';
+import { UpdateOrderPriorityDto } from './dto/update-order-priority.dto';
 import { OrderRevision } from '../../types/order.types';
+import { buildInvoicePdf } from './invoice.generator';
+import type { AuthUser } from '../../types/auth.types';
 
 @Injectable()
 export class OrdersService {
@@ -99,6 +102,13 @@ export class OrdersService {
     return updated!;
   }
 
+  async updatePriority(id: string, dto: UpdateOrderPriorityDto): Promise<Order> {
+    const order = await this.orderModel.findById(id);
+    if (!order) throw new NotFoundException(`Order dengan id ${id} tidak ditemukan`);
+    const updated = await this.orderModel.updatePriority(id, dto.priority);
+    return updated!;
+  }
+
   async updateDetails(id: string, dto: UpdateOrderDetailsDto): Promise<Order> {
     const order = await this.orderModel.findById(id);
     if (!order) throw new NotFoundException(`Order dengan id ${id} tidak ditemukan`);
@@ -176,5 +186,17 @@ export class OrdersService {
 
     const updated = await this.orderModel.updateStatus(id, 'completed');
     return updated!;
+  }
+
+  /**
+   * Generate dokumen invoice PDF untuk sebuah order.
+   * Admin dapat mengakses invoice order manapun, client hanya order miliknya sendiri.
+   */
+  async generateInvoicePdf(id: string, user: AuthUser): Promise<Buffer> {
+    const order = await this.findDetail(id);
+    if (user.role !== 'admin' && order.clientId !== user.id) {
+      throw new ForbiddenException('Anda tidak memiliki akses ke order ini');
+    }
+    return buildInvoicePdf(order);
   }
 }

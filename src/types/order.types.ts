@@ -1,4 +1,5 @@
 export type OrderStatus = 'pending' | 'in_progress' | 'testing' | 'revision' | 'completed' | 'canceled';
+export type OrderPriority = 'low' | 'normal' | 'high';
 
 export interface Order {
   id: string;
@@ -12,6 +13,7 @@ export interface Order {
   totalPrice: number | null;
   deadline: string | null;
   status: OrderStatus;
+  priority: OrderPriority;
   phone: string | null;
   createdAt: string;
   updatedAt: string;

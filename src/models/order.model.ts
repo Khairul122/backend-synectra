@@ -6,7 +6,7 @@ import { Order } from '../types/order.types';
 
 const SELECT = `
   id, client_id, title, service_category, description,
-  total_price, deadline, status, phone, created_at, updated_at,
+  total_price, deadline, status, priority, phone, created_at, updated_at,
   users!client_id ( full_name, email )
 `.trim();
 
@@ -79,6 +79,17 @@ export class OrderModel {
     return data ? this.map(data) : null;
   }
 
+  async updatePriority(id: string, priority: string): Promise<Order | null> {
+    const { data, error } = await this.supabase
+      .from(SUPABASE_TABLES.ORDERS)
+      .update({ priority, updated_at: new Date().toISOString() })
+      .eq('id', id)
+      .select(SELECT)
+      .single();
+    if (error && error.code !== 'PGRST116') throw error;
+    return data ? this.map(data) : null;
+  }
+
   async delete(id: string): Promise<void> {
     const { error } = await this.supabase
       .from(SUPABASE_TABLES.ORDERS)
@@ -116,6 +127,7 @@ export class OrderModel {
       totalPrice:      row.total_price,
       deadline:        row.deadline,
       status:    row.status,
+      priority:  row.priority,
       phone:     row.phone as string | null,
       createdAt: row.created_at,
       updatedAt: row.updated_at,
