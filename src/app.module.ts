@@ -24,6 +24,7 @@ import { SettingsModule } from './modules/settings/settings.module';
 import supabaseConfig from './config/supabase.config';
 import jwtConfig from './config/jwt.config';
 import googleAuthConfig from './config/google-auth.config';
+import { AnalyticsModule } from './common/analytics.module';
 
 @Module({
   imports: [
@@ -31,6 +32,7 @@ import googleAuthConfig from './config/google-auth.config';
       isGlobal: true,
       load: [supabaseConfig, jwtConfig, googleAuthConfig],
     }),
+    AnalyticsModule,
     // Rate limiting global: 60 request/menit per IP.
     // Catatan: storage in-memory bersifat per serverless instance (reset saat
     // cold start) — ini defense-in-depth; pertahanan utama ada di WAF Vercel.
