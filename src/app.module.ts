@@ -4,6 +4,7 @@ import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
 import { APP_GUARD } from '@nestjs/core';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
+import { AnalyticsModule } from './modules/analytics';
 import { AuthModule } from './modules/auth/auth.module';
 import { PortfolioModule } from './modules/portfolio/portfolio.module';
 import { BannersModule } from './modules/banners/banners.module';
@@ -37,6 +38,8 @@ import googleAuthConfig from './config/google-auth.config';
     ThrottlerModule.forRoot({
       throttlers: [{ name: 'default', ttl: 60_000, limit: 60 }],
     }),
+    // Vercel Analytics untuk server-side event tracking
+    AnalyticsModule,
     AuthModule,
     PortfolioModule,
     BannersModule,
