@@ -26,6 +26,15 @@ const PAYMENT_STATUS_COLORS: Record<string, { bg: string; text: string }> = {
   rejected:             { bg: '#FEE2E2', text: '#991B1B' },
 };
 
+const ORDER_STATUS_LABELS: Record<string, string> = {
+  pending:     'Pending',
+  in_progress: 'In Progress',
+  testing:     'Testing',
+  revision:     'Revision',
+  completed:   'Completed',
+  canceled:    'Canceled',
+};
+
 function formatCurrency(value: number | null): string {
   return `Rp ${Number(value ?? 0).toLocaleString('id-ID')}`;
 }
@@ -73,7 +82,8 @@ function drawMetadata(doc: PDFKit.PDFDocument, order: InvoiceOrder, y: number): 
   doc.font('Helvetica').fillColor('#374151').text(`: ${formatDate(order.createdAt)}`, PAGE_LEFT + 90, y);
 
   doc.font('Helvetica-Bold').fillColor('#0D0D0D').text('Status Order', PAGE_LEFT, y + 16);
-  doc.font('Helvetica-Oblique').fillColor('#374151').text(`: ${order.status}`, PAGE_LEFT + 90, y + 16);
+  const statusLabel = ORDER_STATUS_LABELS[order.status] ?? (order.status ? order.status.replace(/_/g, ' ') : '-');
+  doc.font('Helvetica-Oblique').fillColor('#374151').text(`: ${statusLabel}`, PAGE_LEFT + 90, y + 16);
 
   const rightWidth = 245;
   const rightX = PAGE_RIGHT - rightWidth;
