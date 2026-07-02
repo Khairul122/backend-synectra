@@ -91,10 +91,14 @@ function drawDetailRow(doc: PDFKit.PDFDocument, label: string, value: string, y:
   const labelWidth = 90;
   const valueX = PAGE_LEFT + labelWidth;
   const valueWidth = PAGE_RIGHT - valueX;
+  const textToDraw = `: ${uppercase ? value.toUpperCase() : value}`;
+
   doc.fontSize(10).font('Helvetica-Bold').fillColor('#0D0D0D').text(label, PAGE_LEFT, y, { width: labelWidth });
-  doc.font('Helvetica').fillColor('#374151')
-    .text(`: ${uppercase ? value.toUpperCase() : value}`, valueX, y, { width: valueWidth });
-  return y + Math.max(16, doc.heightOfString(`: ${value}`, { width: valueWidth }) + 4);
+  doc.fontSize(10).font('Helvetica').fillColor('#374151')
+    .text(textToDraw, valueX, y, { width: valueWidth });
+
+  const textHeight = doc.fontSize(10).font('Helvetica').heightOfString(textToDraw, { width: valueWidth });
+  return y + Math.max(16, textHeight + 4);
 }
 
 function drawOrderDetails(doc: PDFKit.PDFDocument, order: InvoiceOrder, y: number): number {
