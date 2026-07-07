@@ -10,6 +10,7 @@ import helmet from 'helmet';
 import { AppModule } from './app.module';
 import { HttpExceptionFilter } from './common/filters/http-exception.filter';
 import { ResponseInterceptor } from './common/interceptors/response.interceptor';
+import { AnalyticsInterceptor } from './common/interceptors/analytics.interceptor';
 
 const server = express();
 let app: INestApplication;
@@ -21,7 +22,8 @@ server.set('trust proxy', 1);
 // Security headers; CSP dinonaktifkan di dev karena Swagger UI load asset dari cdnjs
 server.use(
   helmet({
-    contentSecurityPolicy: process.env.NODE_ENV === 'production' ? undefined : false,
+    contentSecurityPolicy:
+      process.env.NODE_ENV === 'production' ? undefined : false,
   }),
 );
 
@@ -37,7 +39,8 @@ const allowedOrigins = [
 ].filter(Boolean);
 server.use(
   cors({
-    origin: (origin, cb) => cb(null, !origin || allowedOrigins.includes(origin)),
+    origin: (origin, cb) =>
+      cb(null, !origin || allowedOrigins.includes(origin)),
     credentials: true,
     maxAge: 86400,
   }),
@@ -57,7 +60,10 @@ export const setupApp = async (nestApp: INestApplication) => {
   );
 
   nestApp.useGlobalFilters(new HttpExceptionFilter());
-  nestApp.useGlobalInterceptors(new ResponseInterceptor());
+  nestApp.useGlobalInterceptors(
+    new AnalyticsInterceptor(),
+    new ResponseInterceptor(),
+  );
 
   // Swagger hanya di non-production agar skema API tidak terekspos ke publik
   if (process.env.NODE_ENV !== 'production') {
