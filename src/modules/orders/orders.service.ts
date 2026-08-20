@@ -42,9 +42,12 @@ export class OrdersService {
     return this.orderModel.findByClient(clientId);
   }
 
-  async findDetail(id: string) {
+  async findDetail(id: string, user: AuthUser) {
     const order = await this.orderModel.findById(id);
     if (!order) throw new NotFoundException(`Order dengan id ${id} tidak ditemukan`);
+    if (user.role !== 'admin' && order.clientId !== user.id) {
+      throw new ForbiddenException('Anda tidak memiliki akses ke order ini');
+    }
     const [payments, progressReports, revisions, vipUserIds] = await Promise.all([
       this.paymentModel.findByOrder(id),
       this.progressReportModel.findByOrder(id),
@@ -195,10 +198,7 @@ export class OrdersService {
    * Admin dapat mengakses invoice order manapun, client hanya order miliknya sendiri.
    */
   async generateInvoicePdf(id: string, user: AuthUser): Promise<Buffer> {
-    const order = await this.findDetail(id);
-    if (user.role !== 'admin' && order.clientId !== user.id) {
-      throw new ForbiddenException('Anda tidak memiliki akses ke order ini');
-    }
+    const order = await this.findDetail(id, user);
     const signatureUrl = await this.settingsModel.getValue('company_signature_url');
     return buildInvoicePdf(order, signatureUrl);
   }

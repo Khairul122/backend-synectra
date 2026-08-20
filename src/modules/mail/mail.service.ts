@@ -71,8 +71,21 @@ export class MailService {
 </div></body></html>`;
   }
 
+  /** Escape karakter HTML agar teks bebas dari client (judul order, catatan revisi, dll) tidak bisa menyisipkan markup ke email */
+  private escapeHtml(text: string): string {
+    return text
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+  }
+
   private field(label: string, value: string, sub?: string): string {
-    return `<div class="field"><div class="label">${label}</div><div class="value">${value}</div>${sub ? `<div class="sub">${sub}</div>` : ''}</div>`;
+    const safeLabel = this.escapeHtml(label);
+    const safeValue = this.escapeHtml(value);
+    const safeSub = sub ? this.escapeHtml(sub) : undefined;
+    return `<div class="field"><div class="label">${safeLabel}</div><div class="value">${safeValue}</div>${safeSub ? `<div class="sub">${safeSub}</div>` : ''}</div>`;
   }
 
   /** Ambil email admin dari contact management, fallback ke ADMIN_EMAIL env */

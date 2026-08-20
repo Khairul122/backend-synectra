@@ -36,9 +36,11 @@ export class OrdersController {
   @ApiOperation({ summary: 'Ambil detail order beserta payments dan progress' })
   @ApiParam({ name: 'id', type: 'string' })
   @ApiResponse({ status: 200, description: 'Detail order' })
+  @ApiResponse({ status: 403, description: 'Bukan pemilik order' })
   @ApiResponse({ status: 404, description: 'Order tidak ditemukan' })
-  findOne(@Param('id') id: string) {
-    return this.ordersService.findDetail(id);
+  findOne(@Param('id') id: string, @Req() req: Request) {
+    const user = req.user as AuthUser;
+    return this.ordersService.findDetail(id, user);
   }
 
   @Post()

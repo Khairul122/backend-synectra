@@ -1,10 +1,11 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
 import { ProgressReportModel } from '../../models/progress-report.model';
 import { OrderModel } from '../../models/order.model';
 import { MailService } from '../mail/mail.service';
 import { ProgressReport } from '../../types/progress-report.types';
 import { CreateProgressReportDto } from './dto/create-progress-report.dto';
 import { UpdateProgressReportDto } from './dto/update-progress-report.dto';
+import type { AuthUser } from '../../types/auth.types';
 
 @Injectable()
 export class ProgressReportsService {
@@ -34,7 +35,12 @@ export class ProgressReportsService {
     return report;
   }
 
-  findByOrder(orderId: string): Promise<ProgressReport[]> {
+  async findByOrder(orderId: string, user: AuthUser): Promise<ProgressReport[]> {
+    const order = await this.orderModel.findById(orderId);
+    if (!order) throw new NotFoundException(`Order dengan id ${orderId} tidak ditemukan`);
+    if (user.role !== 'admin' && order.clientId !== user.id) {
+      throw new ForbiddenException('Anda tidak memiliki akses ke order ini');
+    }
     return this.progressReportModel.findByOrder(orderId);
   }
 

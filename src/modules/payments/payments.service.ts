@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, ForbiddenException, BadRequestException } from '@nestjs/common';
 import { PaymentModel } from '../../models/payment.model';
 import { OrderModel } from '../../models/order.model';
 import { ProgressReportModel } from '../../models/progress-report.model';
@@ -6,6 +6,7 @@ import { Payment } from '../../types/payment.types';
 import { CreatePaymentDto } from './dto/create-payment.dto';
 import { RejectPaymentDto } from './dto/reject-payment.dto';
 import { MailService } from '../mail/mail.service';
+import type { AuthUser } from '../../types/auth.types';
 
 @Injectable()
 export class PaymentsService {
@@ -61,21 +62,25 @@ export class PaymentsService {
     return { view, summary, points };
   }
 
-  async create(dto: CreatePaymentDto): Promise<Payment> {
+  async create(dto: CreatePaymentDto, user: AuthUser): Promise<Payment> {
+    const order = await this.orderModel.findById(dto.orderId);
+    if (!order) throw new NotFoundException(`Order dengan id ${dto.orderId} tidak ditemukan`);
+    if (user.role !== 'admin' && order.clientId !== user.id) {
+      throw new ForbiddenException('Anda tidak memiliki akses ke order ini');
+    }
+    if (order.totalPrice != null && dto.amount > order.totalPrice) {
+      throw new BadRequestException('Jumlah pembayaran melebihi total harga order');
+    }
+
     const payment = await this.paymentModel.create(dto);
-    this.orderModel.findById(dto.orderId)
-      .then(order => {
-        if (!order) return;
-        this.mailService.sendPaymentSubmittedToAdmin({
-          orderId:       order.id,
-          orderTitle:    order.title,
-          amount:        dto.amount,
-          paymentType:   dto.paymentType,
-          clientName:    order.clientName ?? null,
-          paymentNumber: payment.paymentNumber ?? null,
-        }).catch(() => {});
-      })
-      .catch(() => {});
+    this.mailService.sendPaymentSubmittedToAdmin({
+      orderId:       order.id,
+      orderTitle:    order.title,
+      amount:        dto.amount,
+      paymentType:   dto.paymentType,
+      clientName:    order.clientName ?? null,
+      paymentNumber: payment.paymentNumber ?? null,
+    }).catch(() => {});
     return payment;
   }
 

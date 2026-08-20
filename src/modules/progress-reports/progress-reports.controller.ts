@@ -1,10 +1,12 @@
-import { Controller, Get, Post, Patch, Body, Param, UseGuards, HttpCode, HttpStatus } from '@nestjs/common';
+import { Controller, Get, Post, Patch, Body, Param, UseGuards, HttpCode, HttpStatus, Req } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiCookieAuth, ApiParam } from '@nestjs/swagger';
+import type { Request } from 'express';
 import { ProgressReportsService } from './progress-reports.service';
 import { CreateProgressReportDto } from './dto/create-progress-report.dto';
 import { UpdateProgressReportDto } from './dto/update-progress-report.dto';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { AdminGuard } from '../../common/guards/admin.guard';
+import type { AuthUser } from '../../types/auth.types';
 
 @ApiTags('progress-reports')
 @Controller('progress-reports')
@@ -27,8 +29,11 @@ export class ProgressReportsController {
   @ApiOperation({ summary: 'Ambil timeline progress suatu order' })
   @ApiParam({ name: 'orderId', type: 'string' })
   @ApiResponse({ status: 200, description: 'Timeline progress' })
-  findByOrder(@Param('orderId') orderId: string) {
-    return this.progressReportsService.findByOrder(orderId);
+  @ApiResponse({ status: 403, description: 'Bukan pemilik order' })
+  @ApiResponse({ status: 404, description: 'Order tidak ditemukan' })
+  findByOrder(@Param('orderId') orderId: string, @Req() req: Request) {
+    const user = req.user as AuthUser;
+    return this.progressReportsService.findByOrder(orderId, user);
   }
 
   @Patch(':id')

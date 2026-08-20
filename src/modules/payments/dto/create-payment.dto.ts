@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsNotEmpty, IsNumber, IsOptional, IsString, IsUUID } from 'class-validator';
+import { IsNotEmpty, IsNumber, IsOptional, IsString, IsUUID, IsUrl } from 'class-validator';
 
 export class CreatePaymentDto {
   @ApiProperty({ example: 'uuid-order-id' })
@@ -19,6 +19,7 @@ export class CreatePaymentDto {
 
   @ApiProperty({ example: 'https://storage.example.com/receipt.jpg', required: false, description: 'Bukti transfer (opsional jika dicatat oleh admin)' })
   @IsString()
+  @IsUrl()
   @IsOptional()
   receiptImageUrl?: string;
 

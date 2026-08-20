@@ -96,7 +96,9 @@ export class AuthController {
     this.setAuthCookie(res, accessToken);
 
     const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
-    res.redirect(`${frontendUrl}/dashboard?_token=${accessToken}`);
+    // Token dikirim via URL fragment (#), bukan query string (?) — fragment tidak pernah
+    // dikirim ke server (tidak masuk access log / header Referer), hanya bisa dibaca oleh JS di browser.
+    res.redirect(`${frontendUrl}/dashboard#_token=${accessToken}`);
   }
 
   @Get('me')

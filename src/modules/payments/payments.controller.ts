@@ -1,10 +1,12 @@
-import { Controller, Get, Post, Patch, Body, Param, Query, UseGuards, HttpCode, HttpStatus } from '@nestjs/common';
+import { Controller, Get, Post, Patch, Body, Param, Query, UseGuards, HttpCode, HttpStatus, Req } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiCookieAuth, ApiParam } from '@nestjs/swagger';
+import type { Request } from 'express';
 import { PaymentsService } from './payments.service';
 import { CreatePaymentDto } from './dto/create-payment.dto';
 import { RejectPaymentDto } from './dto/reject-payment.dto';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { AdminGuard } from '../../common/guards/admin.guard';
+import type { AuthUser } from '../../types/auth.types';
 
 @ApiTags('payments')
 @Controller('payments')
@@ -34,8 +36,11 @@ export class PaymentsController {
   @HttpCode(HttpStatus.CREATED)
   @ApiOperation({ summary: 'Upload bukti pembayaran (Client)' })
   @ApiResponse({ status: 201, description: 'Payment berhasil dibuat' })
-  create(@Body() dto: CreatePaymentDto) {
-    return this.paymentsService.create(dto);
+  @ApiResponse({ status: 403, description: 'Bukan pemilik order' })
+  @ApiResponse({ status: 404, description: 'Order tidak ditemukan' })
+  create(@Body() dto: CreatePaymentDto, @Req() req: Request) {
+    const user = req.user as AuthUser;
+    return this.paymentsService.create(dto, user);
   }
 
   @Patch(':id/verify')
