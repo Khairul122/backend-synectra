@@ -24,7 +24,7 @@ export interface AuthUser {
 export interface GoogleOAuthUser {
   email: string;
   fullName: string;
-  avatarUrl: string;
+  avatarUrl?: string;
   accessToken: string;
 }
 

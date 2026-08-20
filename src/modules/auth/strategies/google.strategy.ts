@@ -1,8 +1,8 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { PassportStrategy } from '@nestjs/passport';
 import { Strategy, VerifyCallback } from 'passport-google-oauth20';
-import { GoogleProfile } from '../../../types/auth.types';
+import { GoogleOAuthUser, GoogleProfile } from '../../../types/auth.types';
 
 @Injectable()
 export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
@@ -31,11 +31,28 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
     profile: any,
     done: VerifyCallback,
   ): Promise<any> {
-    const { name, emails, photos } = profile;
-    const user = {
-      email: emails[0].value,
-      fullName: name.givenName + ' ' + name.familyName,
-      avatarUrl: photos[0].value,
+    const { name, emails, photos, displayName } = profile ?? {};
+    const email = emails?.[0]?.value;
+
+    if (!email) {
+      done(
+        new UnauthorizedException(
+          'Akun Google tidak mengizinkan akses ke alamat email. Coba login ulang dan pastikan izin email diberikan.',
+        ),
+        false,
+      );
+      return;
+    }
+
+    const fullName =
+      `${name?.givenName ?? ''} ${name?.familyName ?? ''}`.trim() ||
+      displayName ||
+      email;
+
+    const user: GoogleOAuthUser = {
+      email,
+      fullName,
+      avatarUrl: photos?.[0]?.value,
       accessToken,
     };
     done(null, user);
