@@ -6,6 +6,7 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { AuthModule } from './modules/auth/auth.module';
 import { PortfolioModule } from './modules/portfolio/portfolio.module';
+import { ServicesModule } from './modules/services/services.module';
 import { BannersModule } from './modules/banners/banners.module';
 import { BankAccountsModule } from './modules/bank-accounts/bank-accounts.module';
 import { SocialMediaModule } from './modules/social-media/social-media.module';
@@ -39,6 +40,7 @@ import googleAuthConfig from './config/google-auth.config';
     }),
     AuthModule,
     PortfolioModule,
+    ServicesModule,
     BannersModule,
     BankAccountsModule,
     SocialMediaModule,

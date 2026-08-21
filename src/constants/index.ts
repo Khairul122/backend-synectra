@@ -2,6 +2,7 @@ export const SUPABASE_TABLES = {
   USERS:     'users',
   CLIENTS:   'clients',
   PORTFOLIO: 'portofolio',
+  SERVICES:  'services',
   BANNERS:       'banners',
   BANK_ACCOUNTS: 'bank_accounts',
   SOCIAL_MEDIA:     'social_media',
