@@ -22,15 +22,17 @@ import { UsersModule } from './modules/users/users.module';
 import { FeedbacksModule } from './modules/feedbacks/feedbacks.module';
 import { TodosModule } from './modules/todos/todos.module';
 import { SettingsModule } from './modules/settings/settings.module';
+import { GithubWebhookModule } from './modules/webhooks/github-webhook.module';
 import supabaseConfig from './config/supabase.config';
 import jwtConfig from './config/jwt.config';
 import googleAuthConfig from './config/google-auth.config';
+import githubConfig from './config/github.config';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
-      load: [supabaseConfig, jwtConfig, googleAuthConfig],
+      load: [supabaseConfig, jwtConfig, googleAuthConfig, githubConfig],
     }),
     // Rate limiting global: 60 request/menit per IP.
     // Catatan: storage in-memory bersifat per serverless instance (reset saat
@@ -56,6 +58,7 @@ import googleAuthConfig from './config/google-auth.config';
     FeedbacksModule,
     TodosModule,
     SettingsModule,
+    GithubWebhookModule,
   ],
   controllers: [AppController],
   providers: [AppService, { provide: APP_GUARD, useClass: ThrottlerGuard }],

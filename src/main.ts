@@ -21,7 +21,8 @@ server.set('trust proxy', 1);
 // Security headers; CSP dinonaktifkan di dev karena Swagger UI load asset dari cdnjs
 server.use(
   helmet({
-    contentSecurityPolicy: process.env.NODE_ENV === 'production' ? undefined : false,
+    contentSecurityPolicy:
+      process.env.NODE_ENV === 'production' ? undefined : false,
   }),
 );
 
@@ -37,10 +38,21 @@ const allowedOrigins = [
 ].filter(Boolean);
 server.use(
   cors({
-    origin: (origin, cb) => cb(null, !origin || allowedOrigins.includes(origin)),
+    origin: (origin, cb) =>
+      cb(null, !origin || allowedOrigins.includes(origin)),
     credentials: true,
     maxAge: 86400,
   }),
+);
+
+// Body webhook GitHub harus tetap raw (bukan hasil parse-ulang JSON) supaya
+// verifikasi HMAC signature akurat. Middleware ini didaftarkan sebelum
+// body-parser JSON global milik Nest (diregistrasi saat NestFactory.create di
+// bawah), jadi hanya route ini yang dapat body sebagai Buffer — route lain
+// tidak terpengaruh.
+server.use(
+  '/api/webhooks/github',
+  express.raw({ type: 'application/json', limit: '2mb' }),
 );
 
 export const setupApp = async (nestApp: INestApplication) => {

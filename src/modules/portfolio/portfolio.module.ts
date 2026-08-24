@@ -6,5 +6,6 @@ import { PortfolioModel } from '../../models/portfolio.model';
 @Module({
   controllers: [PortfolioController],
   providers:   [PortfolioService, PortfolioModel],
+  exports:     [PortfolioModel],
 })
 export class PortfolioModule {}
