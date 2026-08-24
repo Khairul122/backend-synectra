@@ -1,7 +1,8 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { PortfolioModel } from '../../models/portfolio.model';
-import { GithubRepositoryWebhookPayload } from '../../types/github-webhook.types';
+import { GithubRepositoryWebhookDto } from './dto/github-repository-webhook.dto';
+import { invalidateCache } from '../../common/utils/memory-cache';
 
 const HANDLED_ACTIONS = new Set(['created', 'edited', 'publicized']);
 
@@ -18,7 +19,7 @@ export class GithubWebhookService {
    * @returns true kalau repo di-upsert ke portfolio, false kalau di-skip (tidak lolos filter)
    */
   async handleRepositoryEvent(
-    payload: GithubRepositoryWebhookPayload,
+    payload: GithubRepositoryWebhookDto,
   ): Promise<boolean> {
     if (!HANDLED_ACTIONS.has(payload.action)) return false;
 
@@ -34,6 +35,7 @@ export class GithubWebhookService {
       description: repo.description,
       repoUrl: repo.html_url,
     });
+    invalidateCache('portfolio:findAll');
 
     this.logger.log(
       `Repo "${repo.name}" di-publish ke portfolio (topic: ${topic})`,
