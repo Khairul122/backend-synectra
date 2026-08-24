@@ -1,10 +1,12 @@
 export interface Portfolio {
-  id:          string;
-  title:       string;
+  id: string;
+  title: string;
   description: string | null;
-  image:       string | null;
-  images:      string[];
-  category:    string | null;
-  createdAt:   string;
-  updatedAt:   string;
+  image: string | null;
+  images: string[];
+  category: string | null;
+  repoUrl: string | null;
+  githubRepoId: number | null;
+  createdAt: string;
+  updatedAt: string;
 }
