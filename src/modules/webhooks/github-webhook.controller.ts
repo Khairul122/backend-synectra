@@ -18,7 +18,7 @@ import {
 import { SkipThrottle } from '@nestjs/throttler';
 import { plainToInstance } from 'class-transformer';
 import { validate } from 'class-validator';
-import { Request } from 'express';
+import type { Request } from 'express';
 import { GithubWebhookService } from './github-webhook.service';
 import { verifyGithubSignature } from '../../common/utils/github-signature';
 import { GithubRepositoryWebhookDto } from './dto/github-repository-webhook.dto';
