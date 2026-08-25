@@ -42,7 +42,10 @@ export class GithubWebhookService {
     if (!HANDLED_ACTIONS.has(payload.action)) return false;
     if (!this.isEligible(payload.repository)) return false;
 
-    await this.syncPortfolioFiles(payload.repository);
+    await this.syncPortfolioFiles(
+      payload.repository,
+      payload.repository.default_branch,
+    );
     return true;
   }
 
@@ -65,7 +68,7 @@ export class GithubWebhookService {
     if (!touchedTrackedFile) return false;
     if (!this.isEligible(repo)) return false;
 
-    await this.syncPortfolioFiles(repo);
+    await this.syncPortfolioFiles(repo, payload.after);
     return true;
   }
 
@@ -74,11 +77,14 @@ export class GithubWebhookService {
     return repo.private === false && (repo.topics ?? []).includes(topic);
   }
 
-  private async syncPortfolioFiles(repo: GithubRepositoryDto): Promise<void> {
+  private async syncPortfolioFiles(
+    repo: GithubRepositoryDto,
+    ref: string,
+  ): Promise<void> {
     const [descriptionFile, categoryFile, cover] = await Promise.all([
-      fetchGithubRawFile(repo.full_name, repo.default_branch, 'deskripsi.md'),
-      fetchGithubRawFile(repo.full_name, repo.default_branch, 'kategori.md'),
-      fetchGithubCoverImage(repo.full_name, repo.default_branch),
+      fetchGithubRawFile(repo.full_name, ref, 'deskripsi.md'),
+      fetchGithubRawFile(repo.full_name, ref, 'kategori.md'),
+      fetchGithubCoverImage(repo.full_name, ref),
     ]);
     const image = cover
       ? await this.portfolioModel.uploadGithubCoverImage(
