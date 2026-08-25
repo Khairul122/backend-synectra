@@ -1,0 +1,17 @@
+name: Keep backend warm
+
+# Vercel Hobby plan cuma izinkan Cron Job native 1x/hari - tidak cukup untuk
+# cegah cold start (function jadi dingin setelah idle beberapa menit). GitHub
+# Actions scheduled workflow dipakai sebagai gantinya, gratis, ping tiap 5
+# menit ke health-check endpoint supaya function tetap warm.
+on:
+  schedule:
+    - cron: "*/5 * * * *"
+  workflow_dispatch: {}
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping health check endpoint
+        run: curl -sf --max-time 15 https://backend-synectra-murex.vercel.app/api
