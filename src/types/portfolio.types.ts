@@ -5,6 +5,7 @@ export interface Portfolio {
   image: string | null;
   images: string[];
   category: string | null;
+  link: string | null;
   repoUrl: string | null;
   githubRepoId: number | null;
   createdAt: string;

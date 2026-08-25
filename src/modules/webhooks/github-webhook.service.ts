@@ -101,6 +101,7 @@ export class GithubWebhookService {
       repoUrl: repo.html_url,
       category: categoryFile?.toString('utf8').trim().split('\n')[0],
       image,
+      link: repo.homepage || undefined,
     });
     invalidateCache('portfolio:findAll');
 

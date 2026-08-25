@@ -29,4 +29,9 @@ export class CreatePortfolioDto {
   @IsOptional()
   @MaxLength(100)
   category?: string;
+
+  @ApiProperty({ example: 'https://project-demo.vercel.app', required: false })
+  @IsUrl()
+  @IsOptional()
+  link?: string;
 }
