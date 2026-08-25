@@ -31,6 +31,12 @@ export class GithubRepositoryDto {
   @IsArray()
   @IsString({ each: true })
   topics?: string[];
+
+  @IsString()
+  full_name: string;
+
+  @IsString()
+  default_branch: string;
 }
 
 export class GithubRepositoryWebhookDto {
