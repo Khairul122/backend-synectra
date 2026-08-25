@@ -22,6 +22,7 @@ import type { Request } from 'express';
 import { GithubWebhookService } from './github-webhook.service';
 import { verifyGithubSignature } from '../../common/utils/github-signature';
 import { GithubRepositoryWebhookDto } from './dto/github-repository-webhook.dto';
+import { GithubPushWebhookDto } from './dto/github-push-webhook.dto';
 
 @ApiTags('webhooks')
 @SkipThrottle()
@@ -39,7 +40,7 @@ export class GithubWebhookController {
   @HttpCode(HttpStatus.OK)
   @ApiExcludeEndpoint()
   @ApiOperation({
-    summary: 'Terima event repository dari GitHub Org webhook (internal)',
+    summary: 'Terima event repository/push dari GitHub Org webhook (internal)',
   })
   @ApiResponse({ status: 200, description: 'Event diterima dan diproses' })
   @ApiResponse({ status: 400, description: 'Payload bukan JSON yang valid' })
@@ -60,24 +61,48 @@ export class GithubWebhookController {
       throw new UnauthorizedException('Signature webhook tidak valid');
     }
 
-    if (eventName !== 'repository') {
-      return { received: true, processed: false };
-    }
+    const parsedBody = this.parseJsonBody(rawBody);
+    const processed = await this.dispatchEvent(eventName, parsedBody);
+    return { received: true, processed };
+  }
 
-    let parsedBody: unknown;
+  private parseJsonBody(rawBody: Buffer): unknown {
     try {
-      parsedBody = JSON.parse(rawBody.toString('utf8'));
+      return JSON.parse(rawBody.toString('utf8'));
     } catch {
       throw new BadRequestException('Payload bukan JSON yang valid');
     }
+  }
 
-    const payload = plainToInstance(GithubRepositoryWebhookDto, parsedBody);
+  // event lain (mis. "ping") sengaja dibiarkan lewat sebagai processed: false,
+  // bukan error — webhook memang subscribe beberapa event sekaligus di GitHub.
+  private async dispatchEvent(
+    eventName: string | undefined,
+    parsedBody: unknown,
+  ): Promise<boolean> {
+    if (eventName === 'repository') {
+      const payload = await this.validateDto(
+        GithubRepositoryWebhookDto,
+        parsedBody,
+      );
+      return this.webhookService.handleRepositoryEvent(payload);
+    }
+    if (eventName === 'push') {
+      const payload = await this.validateDto(GithubPushWebhookDto, parsedBody);
+      return this.webhookService.handlePushEvent(payload);
+    }
+    return false;
+  }
+
+  private async validateDto<T extends object>(
+    cls: new () => T,
+    parsedBody: unknown,
+  ): Promise<T> {
+    const payload = plainToInstance(cls, parsedBody);
     const errors = await validate(payload);
     if (errors.length > 0) {
       throw new BadRequestException('Payload webhook tidak valid');
     }
-
-    const processed = await this.webhookService.handleRepositoryEvent(payload);
-    return { received: true, processed };
+    return payload;
   }
 }
