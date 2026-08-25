@@ -19,6 +19,10 @@ export const SUPABASE_TABLES = {
   SETTINGS:           'app_settings',
 };
 
+export const STORAGE_BUCKETS = {
+  PORTFOLIO: 'portofolio-images',
+};
+
 export const AUTH_MESSAGES = {
   LOGIN_SUCCESS: 'Login berhasil',
   LOGIN_FAILED: 'Login gagal',

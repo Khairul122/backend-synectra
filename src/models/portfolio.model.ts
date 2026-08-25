@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
-import { SUPABASE_TABLES } from '../constants';
+import { STORAGE_BUCKETS, SUPABASE_TABLES } from '../constants';
 import { Portfolio } from '../types/portfolio.types';
 
 const SELECT =
@@ -89,12 +89,16 @@ export class PortfolioModel {
    * Upsert entry portfolio dari data repo GitHub, berdasarkan githubRepoId.
    * Dipakai oleh webhook — repo yang sama tidak boleh menghasilkan duplikat
    * meski event "created" dan "edited" (topic ditambahkan belakangan) sama-sama lolos filter.
+   * category/image opsional: hanya ditimpa kalau file-nya ada di repo (deskripsi.md,
+   * kategori.md, cover.*) — kalau tidak ada, kolom yang sudah tersimpan dibiarkan.
    */
   async upsertFromGithubRepo(payload: {
     githubRepoId: number;
     title: string;
     description: string | null;
     repoUrl: string;
+    category?: string;
+    image?: string;
   }): Promise<Portfolio> {
     const { data, error } = await this.supabase
       .from(SUPABASE_TABLES.PORTFOLIO)
@@ -104,6 +108,8 @@ export class PortfolioModel {
           title: payload.title,
           description: payload.description,
           repo_url: payload.repoUrl,
+          ...(payload.category !== undefined && { category: payload.category }),
+          ...(payload.image !== undefined && { image: payload.image }),
           updated_at: new Date().toISOString(),
         },
         { onConflict: 'github_repo_id' },
@@ -112,6 +118,28 @@ export class PortfolioModel {
       .single();
     if (error) throw error;
     return this.map(data);
+  }
+
+  /**
+   * Upload cover image repo GitHub ke Supabase Storage. Path stabil per
+   * githubRepoId (overwrite tiap event) supaya URL tidak berubah-ubah antar sync.
+   */
+  async uploadGithubCoverImage(
+    githubRepoId: number,
+    buffer: Buffer,
+    filename: string,
+  ): Promise<string> {
+    const ext = filename.split('.').pop()!;
+    const path = `github/${githubRepoId}.${ext}`;
+    const { error } = await this.supabase.storage
+      .from(STORAGE_BUCKETS.PORTFOLIO)
+      .upload(path, buffer, {
+        upsert: true,
+        contentType: `image/${ext === 'jpg' ? 'jpeg' : ext}`,
+      });
+    if (error) throw error;
+    return this.supabase.storage.from(STORAGE_BUCKETS.PORTFOLIO).getPublicUrl(path)
+      .data.publicUrl;
   }
 
   private map(row: Record<string, unknown>): Portfolio {
