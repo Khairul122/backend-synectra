@@ -140,6 +140,10 @@ export class PortfolioModel {
       .upload(path, buffer, {
         upsert: true,
         contentType: `image/${ext === 'jpg' ? 'jpeg' : ext}`,
+        // Path stabil & bisa ke-overwrite tiap sync (bukan UUID sekali-pakai
+        // seperti upload manual admin) - cache lebih pendek daripada immutable
+        // supaya cover image yang diganti tidak nyangkut basi terlalu lama.
+        cacheControl: '3600',
       });
     if (error) throw error;
     return this.supabase.storage.from(STORAGE_BUCKETS.PORTFOLIO).getPublicUrl(path)
