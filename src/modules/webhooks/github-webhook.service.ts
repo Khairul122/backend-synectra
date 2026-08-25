@@ -18,10 +18,15 @@ const HANDLED_ACTIONS = new Set(['created', 'edited', 'publicized']);
 const TRACKED_FILES = new Set([
   'deskripsi.md',
   'kategori.md',
+  'url.md',
   'cover.png',
   'cover.jpg',
   'cover.jpeg',
   'cover.webp',
+  'public/cover.png',
+  'public/cover.jpg',
+  'public/cover.jpeg',
+  'public/cover.webp',
 ]);
 
 @Injectable()
@@ -81,9 +86,10 @@ export class GithubWebhookService {
     repo: GithubRepositoryDto,
     ref: string,
   ): Promise<void> {
-    const [descriptionFile, categoryFile, cover] = await Promise.all([
+    const [descriptionFile, categoryFile, urlFile, cover] = await Promise.all([
       fetchGithubRawFile(repo.full_name, ref, 'deskripsi.md'),
       fetchGithubRawFile(repo.full_name, ref, 'kategori.md'),
+      fetchGithubRawFile(repo.full_name, ref, 'url.md'),
       fetchGithubCoverImage(repo.full_name, ref),
     ]);
     const image = cover
@@ -101,7 +107,7 @@ export class GithubWebhookService {
       repoUrl: repo.html_url,
       category: categoryFile?.toString('utf8').trim().split('\n')[0],
       image,
-      link: repo.homepage || undefined,
+      link: urlFile?.toString('utf8').trim().split('\n')[0] || repo.homepage || undefined,
     });
     invalidateCache('portfolio:findAll');
 
