@@ -283,6 +283,46 @@ export class MailService {
     }
   }
 
+  async sendDeadlineReminder(clientEmail: string, data: {
+    orderId:     string;
+    title:       string;
+    deadline:    string;
+    clientName?: string | null;
+  }): Promise<void> {
+    if (!this.transporter) return;
+
+    const daysLeft = Math.max(
+      0,
+      Math.ceil((new Date(data.deadline).getTime() - Date.now()) / (24 * 60 * 60 * 1000)),
+    );
+    const daysLabel = daysLeft === 0 ? 'Hari ini' : `${daysLeft} hari lagi`;
+    const greeting = data.clientName ? `Halo, ${data.clientName}!` : 'Halo!';
+    const deadlineStr = new Date(data.deadline).toLocaleDateString('id-ID', {
+      day: 'numeric', month: 'long', year: 'numeric',
+    });
+
+    const fields = [
+      this.field('Halo', greeting),
+      this.field('Pesanan', data.title),
+      this.field('Deadline', deadlineStr, `Tersisa ${daysLabel} menuju deadline pesanan ini.`),
+    ].join('');
+
+    const html = this.html('#F97316', '#ffffff', '#F97316', '#ffffff',
+      '⏰ Pengingat Deadline Pesanan', daysLabel, fields,
+      `${this.frontendUrl}/my-orders/${data.orderId}`, 'Lihat Detail Pesanan →', '#F97316', '#ffffff');
+
+    try {
+      await this.transporter.sendMail({
+        from:    `Synectra <${this.gmailUser}>`,
+        to:      clientEmail,
+        subject: `[Synectra] Pengingat Deadline — ${data.title} (${daysLabel})`,
+        html,
+      });
+    } catch (error) {
+      this.logger.error('Gagal kirim email deadline reminder', error);
+    }
+  }
+
   async sendPaymentVerified(clientEmail: string, data: {
     orderId:      string;
     orderTitle:   string;

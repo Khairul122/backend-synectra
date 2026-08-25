@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { OrdersController } from './orders.controller';
+import { OrderDeadlineReminderController } from './order-deadline-reminder.controller';
 import { OrdersService } from './orders.service';
 import { OrderModel } from '../../models/order.model';
 import { OrderRevisionModel } from '../../models/order-revision.model';
@@ -11,7 +12,7 @@ import { SettingsModule } from '../settings/settings.module';
 
 @Module({
   imports:     [MailModule, SettingsModule],
-  controllers: [OrdersController],
+  controllers: [OrdersController, OrderDeadlineReminderController],
   providers:   [OrdersService, OrderModel, OrderRevisionModel, PaymentModel, ProgressReportModel, ClientModel],
 })
 export class OrdersModule {}

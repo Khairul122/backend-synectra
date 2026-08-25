@@ -4,7 +4,7 @@ import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import { SUPABASE_TABLES } from '../constants';
 import { Feedback } from '../types/feedback.types';
 
-const SELECT = 'id, name, email, rating, message, created_at, updated_at';
+const SELECT = 'id, name, email, rating, message, is_approved, created_at, updated_at';
 
 @Injectable()
 export class FeedbackModel {
@@ -20,6 +20,16 @@ export class FeedbackModel {
     const { data, error } = await this.supabase
       .from(SUPABASE_TABLES.FEEDBACKS)
       .select(SELECT)
+      .order('created_at', { ascending: false });
+    if (error) throw error;
+    return (data ?? []).map(this.map);
+  }
+
+  async findApproved(): Promise<Feedback[]> {
+    const { data, error } = await this.supabase
+      .from(SUPABASE_TABLES.FEEDBACKS)
+      .select(SELECT)
+      .eq('is_approved', true)
       .order('created_at', { ascending: false });
     if (error) throw error;
     return (data ?? []).map(this.map);
@@ -58,6 +68,7 @@ export class FeedbackModel {
         ...(payload.email   !== undefined && { email:   payload.email }),
         ...(payload.rating  !== undefined && { rating:  payload.rating }),
         ...(payload.message !== undefined && { message: payload.message }),
+        ...(payload.isApproved !== undefined && { is_approved: payload.isApproved }),
         updated_at: new Date().toISOString(),
       })
       .eq('id', id)
@@ -82,6 +93,7 @@ export class FeedbackModel {
       email:     row.email as string,
       rating:    row.rating as number,
       message:   row.message as string | null,
+      isApproved: row.is_approved as boolean,
       createdAt: row.created_at as string,
       updatedAt: row.updated_at as string,
     };

@@ -11,5 +11,11 @@
       "src": "/(.*)",
       "dest": "src/main.ts"
     }
+  ],
+  "crons": [
+    {
+      "path": "/api/internal/cron/order-deadline-reminder",
+      "schedule": "0 1 * * *"
+    }
   ]
 }

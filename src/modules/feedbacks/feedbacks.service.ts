@@ -6,6 +6,7 @@ import { UpdateFeedbackDto } from './dto/update-feedback.dto';
 import { cached, invalidateCache } from '../../common/utils/memory-cache';
 
 const CACHE_KEY = 'feedbacks:findAll';
+const CACHE_KEY_APPROVED = 'feedbacks:findApproved';
 const CACHE_TTL = 60_000;
 
 @Injectable()
@@ -14,6 +15,10 @@ export class FeedbacksService {
 
   findAll(): Promise<Feedback[]> {
     return cached(CACHE_KEY, CACHE_TTL, () => this.feedbackModel.findAll());
+  }
+
+  findApproved(): Promise<Feedback[]> {
+    return cached(CACHE_KEY_APPROVED, CACHE_TTL, () => this.feedbackModel.findApproved());
   }
 
   async findById(id: string): Promise<Feedback> {
@@ -25,6 +30,7 @@ export class FeedbacksService {
   async create(dto: CreateFeedbackDto): Promise<Feedback> {
     const feedback = await this.feedbackModel.create(dto);
     invalidateCache(CACHE_KEY);
+    invalidateCache(CACHE_KEY_APPROVED);
     return feedback;
   }
 
@@ -32,6 +38,7 @@ export class FeedbacksService {
     await this.findById(id);
     const updated = await this.feedbackModel.update(id, dto);
     invalidateCache(CACHE_KEY);
+    invalidateCache(CACHE_KEY_APPROVED);
     return updated!;
   }
 
@@ -39,5 +46,6 @@ export class FeedbacksService {
     await this.findById(id);
     await this.feedbackModel.delete(id);
     invalidateCache(CACHE_KEY);
+    invalidateCache(CACHE_KEY_APPROVED);
   }
 }
