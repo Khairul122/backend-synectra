@@ -15,7 +15,18 @@ export async function fetchGithubRawFile(
   return Buffer.from(await res.arrayBuffer());
 }
 
-const COVER_IMAGE_CANDIDATES = ['cover.png', 'cover.jpg', 'cover.jpeg', 'cover.webp'];
+// Dicek di root dulu, lalu public/ — banyak project (Vite/CRA) taruh asset
+// statis di public/ daripada root repo.
+const COVER_IMAGE_CANDIDATES = [
+  'cover.png',
+  'cover.jpg',
+  'cover.jpeg',
+  'cover.webp',
+  'public/cover.png',
+  'public/cover.jpg',
+  'public/cover.jpeg',
+  'public/cover.webp',
+];
 
 export async function fetchGithubCoverImage(
   fullName: string,
