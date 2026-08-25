@@ -16,7 +16,7 @@ export class FeedbacksController {
   @ApiOperation({ summary: 'Ambil semua feedback untuk landing page (publik)' })
   @ApiResponse({ status: 200, description: 'Daftar feedback' })
   findPublic() {
-    return this.feedbacksService.findAll();
+    return this.feedbacksService.findApproved();
   }
 
   @Post()

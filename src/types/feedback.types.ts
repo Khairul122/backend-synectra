@@ -4,6 +4,7 @@ export interface Feedback {
   email: string;
   rating: number;
   message: string | null;
+  isApproved: boolean;
   createdAt: string;
   updatedAt: string;
 }
