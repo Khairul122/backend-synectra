@@ -32,6 +32,10 @@ export class GithubRepositoryDto {
   @IsString({ each: true })
   topics?: string[];
 
+  @IsOptional()
+  @IsString()
+  homepage?: string | null;
+
   @IsString()
   full_name: string;
 

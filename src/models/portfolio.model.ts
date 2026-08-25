@@ -5,7 +5,7 @@ import { STORAGE_BUCKETS, SUPABASE_TABLES } from '../constants';
 import { Portfolio } from '../types/portfolio.types';
 
 const SELECT =
-  'id, title, description, image, images, category, repo_url, github_repo_id, created_at, updated_at';
+  'id, title, description, image, images, category, link, repo_url, github_repo_id, created_at, updated_at';
 
 @Injectable()
 export class PortfolioModel {
@@ -46,6 +46,7 @@ export class PortfolioModel {
           image: payload.image ?? null,
           images: payload.images ?? [],
           category: payload.category ?? null,
+          link: payload.link ?? null,
         },
       ])
       .select(SELECT)
@@ -68,6 +69,7 @@ export class PortfolioModel {
         ...(payload.image !== undefined && { image: payload.image }),
         ...(payload.images !== undefined && { images: payload.images }),
         ...(payload.category !== undefined && { category: payload.category }),
+        ...(payload.link !== undefined && { link: payload.link }),
         updated_at: new Date().toISOString(),
       })
       .eq('id', id)
@@ -99,6 +101,7 @@ export class PortfolioModel {
     repoUrl: string;
     category?: string;
     image?: string;
+    link?: string;
   }): Promise<Portfolio> {
     const { data, error } = await this.supabase
       .from(SUPABASE_TABLES.PORTFOLIO)
@@ -110,6 +113,7 @@ export class PortfolioModel {
           repo_url: payload.repoUrl,
           ...(payload.category !== undefined && { category: payload.category }),
           ...(payload.image !== undefined && { image: payload.image }),
+          ...(payload.link !== undefined && { link: payload.link }),
           updated_at: new Date().toISOString(),
         },
         { onConflict: 'github_repo_id' },
@@ -150,6 +154,7 @@ export class PortfolioModel {
       image: row.image as string | null,
       images: (row.images as string[]) ?? [],
       category: row.category as string | null,
+      link: row.link as string | null,
       repoUrl: row.repo_url as string | null,
       githubRepoId: row.github_repo_id as number | null,
       createdAt: row.created_at as string,
