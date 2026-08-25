@@ -22,6 +22,12 @@ export class GithubPushWebhookDto {
   @IsString()
   ref: string;
 
+  // SHA commit terakhir dari push ini — dipakai sebagai `ref` saat fetch file
+  // (bukan nama branch) supaya baca state PERSIS setelah push ini, bukan state
+  // branch "saat ini" yang berpotensi sudah berubah lagi oleh push berikutnya.
+  @IsString()
+  after: string;
+
   @ValidateNested()
   @Type(() => GithubRepositoryDto)
   repository: GithubRepositoryDto;
